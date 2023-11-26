@@ -2,8 +2,8 @@
 {
     public class GetRouteEventDetailResponse
     {
-        public int EventId { get; set; }
-        public int EventType { get; set; }
+        public int Id { get; set; }
+        public int Type { get; set; }
         public string Description { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

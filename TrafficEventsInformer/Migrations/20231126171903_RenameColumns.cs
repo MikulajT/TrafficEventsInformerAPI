@@ -26,7 +26,7 @@ namespace TrafficEventsInformer.Migrations
                 newName: "Id");
 
             migrationBuilder.RenameColumn(
-                name: "EventType",
+                name: "Type",
                 table: "RouteEvent",
                 newName: "Type");
 
@@ -68,7 +68,7 @@ namespace TrafficEventsInformer.Migrations
             migrationBuilder.RenameColumn(
                 name: "Type",
                 table: "RouteEvent",
-                newName: "EventType");
+                newName: "Type");
 
             migrationBuilder.RenameColumn(
                 name: "Id",

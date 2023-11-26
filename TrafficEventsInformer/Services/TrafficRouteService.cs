@@ -50,8 +50,8 @@ namespace TrafficEventsInformer.Services
             GetRouteEventDetailResponse result = new GetRouteEventDetailResponse();
             if (routeEvent != null)
             {
-                result.EventId = routeEvent.Id;
-                result.EventType = routeEvent.Type;
+                result.Id = routeEvent.Id;
+                result.Type = routeEvent.Type;
                 result.Description = routeEvent.Description;
                 result.StartDate = routeEvent.StartDate;
                 result.EndDate = routeEvent.EndDate;
