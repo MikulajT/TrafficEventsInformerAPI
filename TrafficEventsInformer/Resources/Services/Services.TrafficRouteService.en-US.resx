@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+		Microsoft ResX Schema
+
+		Version 1.3
+
+		The primary goals of this format is to allow a simple XML format 
+		that is mostly human readable. The generation and parsing of the 
+		various data types are done through the TypeConverter classes 
+		associated with the data types.
+
+		Example:
+
+		... ado.net/XML headers & schema ...
+		<resheader name="resmimetype">text/microsoft-resx</resheader>
+		<resheader name="version">1.3</resheader>
+		<resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+		<resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+		<data name="Name1">this is my long string</data>
+		<data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+		<data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+			[base64 mime encoded serialized .NET Framework object]
+		</data>
+		<data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+			[base64 mime encoded string representing a byte array form of the .NET Framework object]
+		</data>
+
+		There are any number of "resheader" rows that contain simple 
+		name/value pairs.
+
+		Each data row contains a name, and value. The row also contains a 
+		type or mimetype. Type corresponds to a .NET class that support 
+		text/value conversion through the TypeConverter architecture. 
+		Classes that don't support this are serialized and stored with the 
+		mimetype set.
+
+		The mimetype is used for serialized objects, and tells the 
+		ResXResourceReader how to depersist the object. This is currently not 
+		extensible. For a given mimetype the value must be set accordingly:
+
+		Note - application/x-microsoft.net.object.binary.base64 is the format 
+		that the ResXResourceWriter will generate, however the reader can 
+		read any of the formats listed below.
+
+		mimetype: application/x-microsoft.net.object.binary.base64
+		value   : The object must be serialized with 
+			: System.Serialization.Formatters.Binary.BinaryFormatter
+			: and then encoded with base64 encoding.
+
+		mimetype: application/x-microsoft.net.object.soap.base64
+		value   : The object must be serialized with 
+			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+			: and then encoded with base64 encoding.
+
+		mimetype: application/x-microsoft.net.object.bytearray.base64
+		value   : The object must be serialized into a byte array 
+			: using a System.ComponentModel.TypeConverter
+			: and then encoded with base64 encoding.
+	-->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AbnormalTraffic" xml:space="preserve">
+    <value>Abnormal traffic</value>
+  </data>
+  <data name="Accident" xml:space="preserve">
+    <value>Accident</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Activity</value>
+  </data>
+  <data name="AnimalPresenceObstruction" xml:space="preserve">
+    <value>Animal presence obstruction</value>
+  </data>
+  <data name="AuthorityOperation" xml:space="preserve">
+    <value>Authority operation</value>
+  </data>
+  <data name="CarParks" xml:space="preserve">
+    <value>Car parks</value>
+  </data>
+  <data name="Conditions" xml:space="preserve">
+    <value>Conditions</value>
+  </data>
+  <data name="ConstructionWorks" xml:space="preserve">
+    <value>Construction works</value>
+  </data>
+  <data name="DisturbanceActivity" xml:space="preserve">
+    <value>Disturbance activity</value>
+  </data>
+  <data name="EnvironmentalObstruction" xml:space="preserve">
+    <value>Environmental obstruction</value>
+  </data>
+  <data name="EquipmentOrSystemFault" xml:space="preserve">
+    <value>Equipment or system fault</value>
+  </data>
+  <data name="GeneralInstructionOrMessageToRoadUsers" xml:space="preserve">
+    <value>General instruction or message to road users</value>
+  </data>
+  <data name="GeneralNetworkManagement" xml:space="preserve">
+    <value>General network management</value>
+  </data>
+  <data name="GeneralObstruction" xml:space="preserve">
+    <value>General obstruction</value>
+  </data>
+  <data name="InfrastructureDamageObstruction" xml:space="preserve">
+    <value>Infrastructure damage obstruction</value>
+  </data>
+  <data name="MaintenanceWorks" xml:space="preserve">
+    <value>Maintenance works</value>
+  </data>
+  <data name="NetworkManagement" xml:space="preserve">
+    <value>Network management</value>
+  </data>
+  <data name="NonRoadEventInformation" xml:space="preserve">
+    <value>Non road event information</value>
+  </data>
+  <data name="NonWeatherRelatedRoadConditions" xml:space="preserve">
+    <value>Non weather related road conditions</value>
+  </data>
+  <data name="Obstruction" xml:space="preserve">
+    <value>Obstruction</value>
+  </data>
+  <data name="OperatorAction" xml:space="preserve">
+    <value>Operator action</value>
+  </data>
+  <data name="PoorEnvironmentConditions" xml:space="preserve">
+    <value>Poor environment conditions</value>
+  </data>
+  <data name="PublicEvent" xml:space="preserve">
+    <value>Public event</value>
+  </data>
+  <data name="ReroutingManagement" xml:space="preserve">
+    <value>Rerouting management</value>
+  </data>
+  <data name="RoadConditions" xml:space="preserve">
+    <value>Road conditions</value>
+  </data>
+  <data name="RoadOperatorServiceDisruption" xml:space="preserve">
+    <value>Road operator service disruption</value>
+  </data>
+  <data name="RoadOrCarriagewayOrLaneManagement" xml:space="preserve">
+    <value>Road or carriageway or lane management</value>
+  </data>
+  <data name="RoadsideAssistance" xml:space="preserve">
+    <value>Roadside assistance</value>
+  </data>
+  <data name="RoadsideServiceDisruption" xml:space="preserve">
+    <value>Roadside service disruption</value>
+  </data>
+  <data name="Roadworks" xml:space="preserve">
+    <value>Roadworks</value>
+  </data>
+  <data name="SpeedManagement" xml:space="preserve">
+    <value>Speed management</value>
+  </data>
+  <data name="TrafficElement" xml:space="preserve">
+    <value>Traffic element</value>
+  </data>
+  <data name="TransitInformation" xml:space="preserve">
+    <value>Transit information</value>
+  </data>
+  <data name="VehicleObstruction" xml:space="preserve">
+    <value>Vehicle obstruction</value>
+  </data>
+  <data name="WeatherRelatedRoadConditions" xml:space="preserve">
+    <value>Weather related road conditions</value>
+  </data>
+  <data name="WinterDrivingManagement" xml:space="preserve">
+    <value>Winter driving management</value>
+  </data>
+</root>

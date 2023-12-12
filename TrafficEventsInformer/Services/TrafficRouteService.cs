@@ -1,4 +1,5 @@
-﻿using System.Xml.Serialization;
+﻿using Microsoft.Extensions.Localization;
+using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Models.UsersRoute;
@@ -8,10 +9,12 @@ namespace TrafficEventsInformer.Services
     public class TrafficRouteService : ITrafficRouteService
     {
         private readonly ITrafficRouteRepository _trafficRouteRepository;
+        private readonly IStringLocalizer<TrafficRouteService> _localizer;
 
-        public TrafficRouteService(ITrafficRouteRepository trafficRouteRepository)
+        public TrafficRouteService(ITrafficRouteRepository trafficRouteRepository, IStringLocalizer<TrafficRouteService> stringLocalizer)
         {
             _trafficRouteRepository = trafficRouteRepository;
+            _localizer = stringLocalizer;
         }
 
         public IEnumerable<GetTrafficRouteNamesResponse> GetTrafficRouteNames()
@@ -46,12 +49,13 @@ namespace TrafficEventsInformer.Services
 
         public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, int eventId)
         {
+            string tst = _localizer["RoadOrCarriagewayOrLaneManagement"];
             RouteEvent routeEvent = _trafficRouteRepository.GetRouteEventDetail(routeId, eventId);
             GetRouteEventDetailResponse result = new GetRouteEventDetailResponse();
             if (routeEvent != null)
             {
                 result.Id = routeEvent.Id;
-                result.Type = routeEvent.Type;
+                result.Type = _localizer[((EventTypes)routeEvent.Type).ToString()]; // TODO: Get incident type name from int value
                 result.Description = routeEvent.Description;
                 result.StartDate = routeEvent.StartDate;
                 result.EndDate = routeEvent.EndDate;
