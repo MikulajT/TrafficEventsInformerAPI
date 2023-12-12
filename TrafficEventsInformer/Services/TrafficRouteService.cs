@@ -55,7 +55,7 @@ namespace TrafficEventsInformer.Services
             if (routeEvent != null)
             {
                 result.Id = routeEvent.Id;
-                result.Type = _localizer[((EventTypes)routeEvent.Type).ToString()]; // TODO: Get incident type name from int value
+                result.Type = _localizer[((EventTypes)routeEvent.Type).ToString()];
                 result.Description = routeEvent.Description;
                 result.StartDate = routeEvent.StartDate;
                 result.EndDate = routeEvent.EndDate;
