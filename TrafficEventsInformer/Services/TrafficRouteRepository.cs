@@ -43,7 +43,11 @@ namespace TrafficEventsInformer.Services
                 Type = x.Type,
                 Description = x.Description,
                 StartDate = x.StartDate,
-                EndDate = x.EndDate
+                EndDate = x.EndDate,
+                StartPointX = x.StartPointX,
+                StartPointY = x.StartPointY,
+                EndPointX = x.EndPointX,
+                EndPointY = x.EndPointY
             }).SingleOrDefault();
         }
 

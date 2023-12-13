@@ -49,7 +49,6 @@ namespace TrafficEventsInformer.Services
 
         public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, int eventId)
         {
-            string tst = _localizer["RoadOrCarriagewayOrLaneManagement"];
             RouteEvent routeEvent = _trafficRouteRepository.GetRouteEventDetail(routeId, eventId);
             GetRouteEventDetailResponse result = new GetRouteEventDetailResponse();
             if (routeEvent != null)
@@ -60,6 +59,10 @@ namespace TrafficEventsInformer.Services
                 result.StartDate = routeEvent.StartDate;
                 result.EndDate = routeEvent.EndDate;
                 result.DaysRemaining = (routeEvent.EndDate - routeEvent.StartDate).Days;
+                result.StartPointX = routeEvent.StartPointX;
+                result.StartPointY = routeEvent.StartPointY;
+                result.EndPointX = routeEvent.EndPointX;
+                result.EndPointY = routeEvent.EndPointY;
             }
             return result;
         }
