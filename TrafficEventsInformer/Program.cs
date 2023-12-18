@@ -17,12 +17,12 @@ namespace TrafficEventsInformer
             builder.Services.AddLocalization(options => options.ResourcesPath = "Resources/Services");
             var supportedCultures = new[]
             {
-                new CultureInfo("en-US"),
+                //new CultureInfo("en-US"),
                 new CultureInfo("cs-CZ")
             };
             builder.Services.Configure<RequestLocalizationOptions>(options =>
             {
-                options.DefaultRequestCulture = new RequestCulture("en-US");
+                options.DefaultRequestCulture = new RequestCulture("cs-CZ");
                 options.SupportedCultures = supportedCultures;
                 options.SupportedUICultures = supportedCultures;
             });

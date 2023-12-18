@@ -22,10 +22,11 @@ namespace TrafficEventsInformer.Ef
                 entity.Property(e => e.Name).HasMaxLength(50);
                 entity.Property(e => e.Coordinates).HasColumnType("xml");
             });
+            //modelBuilder.Ignore<RouteEvent>();
             modelBuilder.Entity<RouteEvent>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                entity.Property(e => e.Id).HasMaxLength(36);
                 entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.HasOne(b => b.TrafficRoute)
                     .WithMany(a => a.Events)

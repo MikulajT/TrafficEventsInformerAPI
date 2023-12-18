@@ -47,7 +47,7 @@ namespace TrafficEventsInformer.Services
             return result;
         }
 
-        public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, int eventId)
+        public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId)
         {
             RouteEvent routeEvent = _trafficRouteRepository.GetRouteEventDetail(routeId, eventId);
             GetRouteEventDetailResponse result = new GetRouteEventDetailResponse();

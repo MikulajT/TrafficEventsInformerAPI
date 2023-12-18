@@ -6,7 +6,7 @@ namespace TrafficEventsInformer.Services
     {
         IEnumerable<TrafficRoute> GetTrafficRouteNames();
         IEnumerable<RouteEvent> GetRouteEventNames(int routeId);
-        RouteEvent GetRouteEventDetail(int routeId, int eventId);
+        RouteEvent GetRouteEventDetail(int routeId, string eventId);
         void AddRoute(string routeName, string routeCoordinates);
     }
 }

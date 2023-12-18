@@ -30,7 +30,7 @@ namespace TrafficEventsInformer.Services
             });
         }
 
-        public RouteEvent GetRouteEventDetail(int routeId, int eventId)
+        public RouteEvent GetRouteEventDetail(int routeId, string eventId)
         {
             return _dbContext.RouteEvent.Where(x => x.RouteId == routeId && x.Id == eventId).Select(x => new RouteEvent()
             {
