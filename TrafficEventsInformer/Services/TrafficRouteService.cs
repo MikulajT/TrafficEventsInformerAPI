@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Localization;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
@@ -9,11 +11,15 @@ namespace TrafficEventsInformer.Services
     public class TrafficRouteService : ITrafficRouteService
     {
         private readonly ITrafficRouteRepository _trafficRouteRepository;
+        private readonly IGeoService _geoService;
+        private readonly IConfiguration _config;
         private readonly IStringLocalizer<TrafficRouteService> _localizer;
 
-        public TrafficRouteService(ITrafficRouteRepository trafficRouteRepository, IStringLocalizer<TrafficRouteService> stringLocalizer)
+        public TrafficRouteService(ITrafficRouteRepository trafficRouteRepository, IGeoService geoService, IConfiguration configuration, IStringLocalizer<TrafficRouteService> stringLocalizer)
         {
             _trafficRouteRepository = trafficRouteRepository;
+            _geoService = geoService;
+            _config = configuration;
             _localizer = stringLocalizer;
         }
 
@@ -79,6 +85,62 @@ namespace TrafficEventsInformer.Services
                     string serializedFileContents = stringWriter.ToString();
                     _trafficRouteRepository.AddRoute(routeRequest.RouteName, serializedFileContents);
                 }
+            }
+        }
+
+        public async Task SyncUsersRouteEvents()
+        {
+            List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
+            List<RouteWithCoordinates> routesWithCoordinates = _geoService.GetUsersRouteWithCoordinates().ToList();
+            foreach (var routeWithCoordinates in routesWithCoordinates)
+            {
+                List<SituationRecord> routeEvents = _geoService.GetEventsOnUsersRoute(routeWithCoordinates.RouteCoordinates, activeTrafficEvents).ToList();
+                foreach (var routeEvent in routeEvents)
+                {
+                    if (!_trafficRouteRepository.RouteEventExists(routeWithCoordinates.RouteId, routeEvent.id))
+                    {
+                        _trafficRouteRepository.AddRouteEvent(new RouteEvent()
+                        {
+                            Id = routeEvent.id,
+                            Type = (int)Enum.Parse<EventTypes>(routeEvent.GetType().Name),
+                            Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0],
+                            Description = routeEvent.generalPublicComment[0].comment.values[0].Value,
+                            StartDate = routeEvent.validity.validityTimeSpecification.overallStartTime,
+                            EndDate = routeEvent.validity.validityTimeSpecification.overallEndTime,
+                            StartPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskX,
+                            StartPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskY,
+                            EndPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskX,
+                            EndPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskY,
+                            RouteId = routeWithCoordinates.RouteId
+                        });
+                    }
+                }
+            }
+        }
+
+        private async Task<List<SituationRecord>> GetActiveTrafficEvents()
+        {
+            using (var httpClient = new HttpClient())
+            {
+                var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_config["CommonTiLogin"]}:{_config["CommonTiPassword"]}"));
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
+                var apiUrl = "https://mobilitydata.rsd.cz/Resources/Dynamic/CommonTIDatex/";
+                HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+                var situations = new List<SituationRecord>();
+                if (response.IsSuccessStatusCode)
+                {
+                    var content =  await response.Content.ReadAsStringAsync();
+                    var serializer = new XmlSerializer(typeof(D2LogicalModel));
+                    using (StringReader stringReader = new StringReader(content))
+                    {
+                        var filteredSituations = (D2LogicalModel)serializer.Deserialize(stringReader);
+                        situations = ((SituationPublication)filteredSituations.payloadPublication).situation
+                            .Select(situation => situation.situationRecord[0])
+                            .Where(record => record.validity.validityTimeSpecification.overallEndTime > DateTime.Now)
+                            .ToList();
+                    }
+                }
+                return situations;
             }
         }
     }

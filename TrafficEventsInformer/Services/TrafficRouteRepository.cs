@@ -60,5 +60,21 @@ namespace TrafficEventsInformer.Services
             });
             _dbContext.SaveChanges();
         }
+
+        public IEnumerable<TrafficRoute> GetUsersRoutes()
+        {
+            return _dbContext.TrafficRoute;
+        }
+
+        public bool RouteEventExists(int routeId, string eventId)
+        {
+            return _dbContext.RouteEvent.Any(x => x.RouteId == routeId && x.Id == eventId);
+        }
+
+        public void AddRouteEvent(RouteEvent routeEvent)
+        {
+            _dbContext.RouteEvent.Add(routeEvent);
+            _dbContext.SaveChanges();
+        }
     }
 }

@@ -25,7 +25,7 @@ namespace TrafficEventsInformer.Ef
             //modelBuilder.Ignore<RouteEvent>();
             modelBuilder.Entity<RouteEvent>(entity =>
             {
-                entity.HasKey(e => e.Id);
+                entity.HasKey(e => new { e.Id, e.RouteId });
                 entity.Property(e => e.Id).HasMaxLength(36);
                 entity.Property(e => e.Description).HasMaxLength(1000);
                 entity.HasOne(b => b.TrafficRoute)

@@ -5,29 +5,36 @@ using ProjNet.CoordinateSystems.Transformations;
 using ProjNet.CoordinateSystems;
 using TrafficEventsInformer.Models.UsersRoute;
 using System.Xml.Serialization;
+using TrafficEventsInformer.Ef.Models;
 
 namespace TrafficEventsInformer.Services
 {
     public class GeoService : IGeoService
     {
-        private const double EarthRadiusKm = 6371.0;
+        private readonly ITrafficRouteRepository _trafficRouteRepository;
         private readonly IConfiguration _config;
+        private const double EarthRadiusKm = 6371.0;
 
-        public GeoService(IConfiguration config)
+        public GeoService(IConfiguration config, ITrafficRouteRepository trafficRouteRepository)
         {
             _config = config;
+            _trafficRouteRepository = trafficRouteRepository;
         }
 
-        public IEnumerable<Trkpt> GetUsersRoute()
+        public IEnumerable<RouteWithCoordinates> GetUsersRouteWithCoordinates()
         {
-            string filePath = _config["RoutePath"];
-            string xmlData = File.ReadAllText(filePath);
+            var usersRouteCoordinates = new List<RouteWithCoordinates>();
+            List<TrafficRoute> usersRoutes = _trafficRouteRepository.GetUsersRoutes().ToList();
             XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
-            using (StringReader stringReader = new StringReader(xmlData))
+            foreach (var usersRoute in usersRoutes)
             {
-                Gpx route = (Gpx)serializer.Deserialize(stringReader);
-                return route.Trk.Trkseg.Trkpt;
+                using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
+                {
+                    Gpx route = (Gpx)serializer.Deserialize(stringReader);
+                    usersRouteCoordinates.Add(new RouteWithCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt));
+                }
             }
+            return usersRouteCoordinates;
         }
 
         public IEnumerable<SituationRecord> GetEventsOnUsersRoute(IEnumerable<Trkpt> routePoints, IEnumerable<SituationRecord> situations)
