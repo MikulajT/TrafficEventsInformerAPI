@@ -11,6 +11,7 @@ namespace TrafficEventsInformer.Services
         IEnumerable<TrafficRoute> GetUsersRoutes();
         bool RouteEventExists(int routeId, string eventId);
         void AddRouteEvent(RouteEvent routeEvent);
+        void DeleteRoute(int routeId);
         void InvalidateExpiredRouteEvents();
     }
 }

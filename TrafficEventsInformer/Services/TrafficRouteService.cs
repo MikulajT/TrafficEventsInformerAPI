@@ -88,6 +88,11 @@ namespace TrafficEventsInformer.Services
             }
         }
 
+        public void DeleteRoute(int routeId)
+        {
+            _trafficRouteRepository.DeleteRoute(routeId);
+        }
+
         public async Task SyncUsersRouteEvents()
         {
             await AddNewRouteEvents();

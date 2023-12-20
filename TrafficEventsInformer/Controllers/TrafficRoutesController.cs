@@ -44,5 +44,13 @@ namespace TrafficEventsInformer.Controllers
             await _trafficRouteService.AddRouteAsync(requestData);
             return Ok();
         }
+
+        [HttpDelete]
+        [Route("api/trafficRoutes")]
+        public IActionResult DeleteRoute(int routeId)
+        {
+            _trafficRouteService.DeleteRoute(routeId);
+            return Ok();
+        }
     }
 }

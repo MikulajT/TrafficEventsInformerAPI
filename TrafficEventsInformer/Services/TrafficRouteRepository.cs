@@ -79,6 +79,13 @@ namespace TrafficEventsInformer.Services
             _dbContext.SaveChanges();
         }
 
+        public void DeleteRoute(int routeId)
+        {
+            var route = _dbContext.TrafficRoute.Single(x => x.Id == routeId);
+            _dbContext.TrafficRoute.Remove(route);
+            _dbContext.SaveChanges();
+        }
+
         public void InvalidateExpiredRouteEvents()
         {
             var expiredEvents = _dbContext.RouteEvent.Where(x => !x.Expired && DateTime.Now > x.EndDate);
