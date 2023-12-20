@@ -90,6 +90,12 @@ namespace TrafficEventsInformer.Services
 
         public async Task SyncUsersRouteEvents()
         {
+            await AddNewRouteEvents();
+            InvalidateExpiredRouteEvents();
+        }
+
+        private async Task AddNewRouteEvents()
+        {
             List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
             List<RouteWithCoordinates> routesWithCoordinates = _geoService.GetUsersRouteWithCoordinates().ToList();
             foreach (var routeWithCoordinates in routesWithCoordinates)
@@ -116,6 +122,11 @@ namespace TrafficEventsInformer.Services
                     }
                 }
             }
+        }
+
+        private void InvalidateExpiredRouteEvents()
+        {
+            _trafficRouteRepository.InvalidateExpiredRouteEvents();
         }
 
         private async Task<List<SituationRecord>> GetActiveTrafficEvents()

@@ -23,11 +23,13 @@ namespace TrafficEventsInformer.Services
 
         public IEnumerable<RouteEvent> GetRouteEventNames(int routeId)
         {
-            return _dbContext.RouteEvent.Where(x => x.RouteId == routeId).Select(x => new RouteEvent()
-            {
-                Id = x.Id,
-                Name = x.Name
-            });
+            return _dbContext.RouteEvent
+                .Where(x => x.RouteId == routeId && !x.Expired)
+                .Select(x => new RouteEvent()
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                });
         }
 
         public RouteEvent GetRouteEventDetail(int routeId, string eventId)
@@ -74,6 +76,16 @@ namespace TrafficEventsInformer.Services
         public void AddRouteEvent(RouteEvent routeEvent)
         {
             _dbContext.RouteEvent.Add(routeEvent);
+            _dbContext.SaveChanges();
+        }
+
+        public void InvalidateExpiredRouteEvents()
+        {
+            var expiredEvents = _dbContext.RouteEvent.Where(x => !x.Expired && DateTime.Now > x.EndDate);
+            foreach (var expiredEvent in expiredEvents)
+            {
+                expiredEvent.Expired = true;
+            }
             _dbContext.SaveChanges();
         }
     }
