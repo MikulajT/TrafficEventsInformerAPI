@@ -3,24 +3,14 @@ using TrafficEventsInformer.Ef.Models;
 
 namespace TrafficEventsInformer.Services
 {
-    public class TrafficRouteRepository : ITrafficRouteRepository
+    public class TrafficEventsRepository : ITrafficEventsRepository
     {
         private readonly ApplicationDbContext _dbContext;
 
-        public TrafficRouteRepository(ApplicationDbContext dbContext)
+        public TrafficEventsRepository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
-
-        public IEnumerable<TrafficRoute> GetTrafficRouteNames()
-        {
-            return _dbContext.TrafficRoute.Select(x => new TrafficRoute()
-            {
-                Id = x.Id,
-                Name = x.Name
-            });
-        }
-
         public IEnumerable<RouteEvent> GetRouteEventNames(int routeId)
         {
             return _dbContext.RouteEvent
@@ -53,37 +43,15 @@ namespace TrafficEventsInformer.Services
             }).SingleOrDefault();
         }
 
-        public void AddRoute(string routeName, string routeCoordinates)
-        {
-            _dbContext.TrafficRoute.Add(new TrafficRoute()
-            {
-                Name = routeName,
-                Coordinates = routeCoordinates
-            });
-            _dbContext.SaveChanges();
-        }
-
-        public IEnumerable<TrafficRoute> GetUsersRoutes()
-        {
-            return _dbContext.TrafficRoute;
-        }
-
-        public bool RouteEventExists(int routeId, string eventId)
-        {
-            return _dbContext.RouteEvent.Any(x => x.RouteId == routeId && x.Id == eventId);
-        }
-
         public void AddRouteEvent(RouteEvent routeEvent)
         {
             _dbContext.RouteEvent.Add(routeEvent);
             _dbContext.SaveChanges();
         }
 
-        public void DeleteRoute(int routeId)
+        public bool RouteEventExists(int routeId, string eventId)
         {
-            var route = _dbContext.TrafficRoute.Single(x => x.Id == routeId);
-            _dbContext.TrafficRoute.Remove(route);
-            _dbContext.SaveChanges();
+            return _dbContext.RouteEvent.Any(x => x.RouteId == routeId && x.Id == eventId);
         }
 
         public void InvalidateExpiredRouteEvents()

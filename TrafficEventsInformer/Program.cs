@@ -35,9 +35,11 @@ namespace TrafficEventsInformer
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString")));
-            builder.Services.AddScoped<IGeoService, GeoService>();
-            builder.Services.AddScoped<ITrafficRouteRepository, TrafficRouteRepository>();
-            builder.Services.AddScoped<ITrafficRouteService, TrafficRouteService>();
+            builder.Services.AddTransient<IGeoService, GeoService>();
+            builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
+            builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
+            builder.Services.AddTransient<ITrafficEventsRepository, TrafficEventsRepository>();
+            builder.Services.AddTransient<ITrafficEventsService, TrafficEventsService>();
 
             var app = builder.Build();
 

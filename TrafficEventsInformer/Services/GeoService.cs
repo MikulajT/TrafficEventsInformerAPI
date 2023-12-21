@@ -1,67 +1,23 @@
-﻿using TrafficEventsInformer.Models;
+﻿using GeoAPI.CoordinateSystems;
 using GeoAPI.CoordinateSystems.Transformations;
-using GeoAPI.CoordinateSystems;
-using ProjNet.CoordinateSystems.Transformations;
 using ProjNet.CoordinateSystems;
-using TrafficEventsInformer.Models.UsersRoute;
-using System.Xml.Serialization;
-using TrafficEventsInformer.Ef.Models;
+using ProjNet.CoordinateSystems.Transformations;
+using TrafficEventsInformer.Models;
 
 namespace TrafficEventsInformer.Services
 {
     public class GeoService : IGeoService
     {
-        private readonly ITrafficRouteRepository _trafficRouteRepository;
-        private readonly IConfiguration _config;
         private const double EarthRadiusKm = 6371.0;
 
-        public GeoService(IConfiguration config, ITrafficRouteRepository trafficRouteRepository)
-        {
-            _config = config;
-            _trafficRouteRepository = trafficRouteRepository;
-        }
-
-        public IEnumerable<RouteWithCoordinates> GetUsersRouteWithCoordinates()
-        {
-            var usersRouteCoordinates = new List<RouteWithCoordinates>();
-            List<TrafficRoute> usersRoutes = _trafficRouteRepository.GetUsersRoutes().ToList();
-            XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
-            foreach (var usersRoute in usersRoutes)
-            {
-                using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
-                {
-                    Gpx route = (Gpx)serializer.Deserialize(stringReader);
-                    usersRouteCoordinates.Add(new RouteWithCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt));
-                }
-            }
-            return usersRouteCoordinates;
-        }
-
-        public IEnumerable<SituationRecord> GetEventsOnUsersRoute(IEnumerable<Trkpt> routePoints, IEnumerable<SituationRecord> situations)
-        {
-            var result = new List<SituationRecord>();
-            var convertedCoordinates = ConvertCoordinates(situations);
-            foreach (Trkpt routePoint in routePoints)
-            {
-                foreach (SituationRecord situation in situations)
-                {
-                    WgsPoint wgsPoint = convertedCoordinates[situation.id];
-                    if (AreCoordinatesWithinRadius(routePoint.Lat, routePoint.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
-                        !result.Any(x => x.id == situation.id))
-                    {
-                        result.Add(situation);
-                    }
-                }
-            }
-            return result;
-        }
+        public GeoService() { }
 
         /// <summary>
         /// Converts coordinates of <paramref name="situations"/> from S-JTSK to WGS-84
         /// </summary>
         /// <param name="situations"></param>
         /// <returns>Dictionary with id of situation as a key and WGS-84 coordinate as a value</returns>
-        private Dictionary<string, WgsPoint> ConvertCoordinates(IEnumerable<SituationRecord> situations)
+        public Dictionary<string, WgsPoint> ConvertCoordinates(IEnumerable<SituationRecord> situations)
         {
             var convertedCoordinates = new Dictionary<string, WgsPoint>();
             foreach (SituationRecord situation in situations)
@@ -73,7 +29,7 @@ namespace TrafficEventsInformer.Services
             return convertedCoordinates;
         }
 
-        private WgsPoint ConvertSjtskToWgs84(double xSjtsk, double ySjtsk)
+        public WgsPoint ConvertSjtskToWgs84(double xSjtsk, double ySjtsk)
         {
             // Define the coordinate system for S-JTSK and WGS84
             ICoordinateSystemFactory csFactory = new CoordinateSystemFactory();
@@ -95,13 +51,13 @@ namespace TrafficEventsInformer.Services
             };
         }
 
-        private bool AreCoordinatesWithinRadius(double lat1, double lon1, double lat2, double lon2, double radiusMeters)
+        public bool AreCoordinatesWithinRadius(double lat1, double lon1, double lat2, double lon2, double radiusMeters)
         {
             double distance = CalculateDistanceBetweenCoordinates(lat1, lon1, lat2, lon2) * 1000; // Convert to meters
             return distance <= radiusMeters;
         }
 
-        private double CalculateDistanceBetweenCoordinates(double lat1, double lon1, double lat2, double lon2)
+        public double CalculateDistanceBetweenCoordinates(double lat1, double lon1, double lat2, double lon2)
         {
             double lat1Rad = ToRadians(lat1);
             double lon1Rad = ToRadians(lon1);
@@ -116,7 +72,7 @@ namespace TrafficEventsInformer.Services
             return EarthRadiusKm * c;
         }
 
-        private double ToRadians(double degrees)
+        public double ToRadians(double degrees)
         {
             return degrees * Math.PI / 180.0;
         }

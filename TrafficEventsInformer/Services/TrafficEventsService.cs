@@ -8,40 +8,30 @@ using TrafficEventsInformer.Models.UsersRoute;
 
 namespace TrafficEventsInformer.Services
 {
-    public class TrafficRouteService : ITrafficRouteService
+    public class TrafficEventsService : ITrafficEventsService
     {
-        private readonly ITrafficRouteRepository _trafficRouteRepository;
+        private readonly ITrafficRoutesRepository _trafficRoutesRepository;
+        private readonly ITrafficEventsRepository _trafficEventsRepository;
         private readonly IGeoService _geoService;
         private readonly IConfiguration _config;
-        private readonly IStringLocalizer<TrafficRouteService> _localizer;
-
-        public TrafficRouteService(ITrafficRouteRepository trafficRouteRepository, IGeoService geoService, IConfiguration configuration, IStringLocalizer<TrafficRouteService> stringLocalizer)
+        private readonly IStringLocalizer<TrafficRoutesService> _localizer;
+        public TrafficEventsService(ITrafficRoutesRepository trafficRoutesRepository,
+            ITrafficEventsRepository trafficEventsRepository,
+            IGeoService geoService,
+            IConfiguration config,
+            IStringLocalizer<TrafficRoutesService> localizer)
         {
-            _trafficRouteRepository = trafficRouteRepository;
+            _trafficRoutesRepository = trafficRoutesRepository;
+            _trafficEventsRepository = trafficEventsRepository;
             _geoService = geoService;
-            _config = configuration;
-            _localizer = stringLocalizer;
-        }
-
-        public IEnumerable<GetTrafficRouteNamesResponse> GetTrafficRouteNames()
-        {
-            List<GetTrafficRouteNamesResponse> result = new List<GetTrafficRouteNamesResponse>();
-            List<TrafficRoute> trafficRoutes = _trafficRouteRepository.GetTrafficRouteNames().ToList();
-            foreach (var trafficRoute in trafficRoutes)
-            {
-                result.Add(new GetTrafficRouteNamesResponse()
-                {
-                    Id = trafficRoute.Id,
-                    Name = trafficRoute.Name
-                });
-            }
-            return result;
+            _config = config;
+            _localizer = localizer;
         }
 
         public IEnumerable<GetRouteEventNamesResponse> GetRouteEventNames(int routeId)
         {
             List<GetRouteEventNamesResponse> result = new List<GetRouteEventNamesResponse>();
-            List<RouteEvent> routeEvents = _trafficRouteRepository.GetRouteEventNames(routeId).ToList();
+            List<RouteEvent> routeEvents = _trafficEventsRepository.GetRouteEventNames(routeId).ToList();
             foreach (var routeEvent in routeEvents)
             {
                 result.Add(new GetRouteEventNamesResponse()
@@ -55,7 +45,7 @@ namespace TrafficEventsInformer.Services
 
         public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId)
         {
-            RouteEvent routeEvent = _trafficRouteRepository.GetRouteEventDetail(routeId, eventId);
+            RouteEvent routeEvent = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId);
             GetRouteEventDetailResponse result = new GetRouteEventDetailResponse();
             if (routeEvent != null)
             {
@@ -73,44 +63,29 @@ namespace TrafficEventsInformer.Services
             return result;
         }
 
-        public async Task AddRouteAsync(AddRouteRequest routeRequest)
-        {
-            var serializer = new XmlSerializer(typeof(Gpx));
-            using (var reader = new StreamReader(routeRequest.RouteFile.OpenReadStream()))
-            {
-                Gpx routeCoordinates = (Gpx)serializer.Deserialize(reader);
-                using (var stringWriter = new StringWriter())
-                {
-                    serializer.Serialize(stringWriter, routeCoordinates);
-                    string serializedFileContents = stringWriter.ToString();
-                    _trafficRouteRepository.AddRoute(routeRequest.RouteName, serializedFileContents);
-                }
-            }
-        }
-
-        public void DeleteRoute(int routeId)
-        {
-            _trafficRouteRepository.DeleteRoute(routeId);
-        }
-
-        public async Task SyncUsersRouteEvents()
+        public async Task SyncAllRouteEvents()
         {
             await AddNewRouteEvents();
             InvalidateExpiredRouteEvents();
         }
 
+        public async Task SyncRouteEvents(int routeId)
+        {
+            throw new NotImplementedException();
+        }
+
         private async Task AddNewRouteEvents()
         {
             List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
-            List<RouteWithCoordinates> routesWithCoordinates = _geoService.GetUsersRouteWithCoordinates().ToList();
+            List<RouteWithCoordinates> routesWithCoordinates = GetUsersRoutesWithCoordinates().ToList();
             foreach (var routeWithCoordinates in routesWithCoordinates)
             {
-                List<SituationRecord> routeEvents = _geoService.GetEventsOnUsersRoute(routeWithCoordinates.RouteCoordinates, activeTrafficEvents).ToList();
+                List<SituationRecord> routeEvents = GetEventsOnUsersRoute(routeWithCoordinates.RouteCoordinates, activeTrafficEvents).ToList();
                 foreach (var routeEvent in routeEvents)
                 {
-                    if (!_trafficRouteRepository.RouteEventExists(routeWithCoordinates.RouteId, routeEvent.id))
+                    if (!_trafficEventsRepository.RouteEventExists(routeWithCoordinates.RouteId, routeEvent.id))
                     {
-                        _trafficRouteRepository.AddRouteEvent(new RouteEvent()
+                        _trafficEventsRepository.AddRouteEvent(new RouteEvent()
                         {
                             Id = routeEvent.id,
                             Type = (int)Enum.Parse<EventTypes>(routeEvent.GetType().Name),
@@ -129,9 +104,44 @@ namespace TrafficEventsInformer.Services
             }
         }
 
+        public IEnumerable<RouteWithCoordinates> GetUsersRoutesWithCoordinates()
+        {
+            var usersRouteCoordinates = new List<RouteWithCoordinates>();
+            List<TrafficRoute> usersRoutes = _trafficRoutesRepository.GetUsersRoutes().ToList();
+            XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
+            foreach (var usersRoute in usersRoutes)
+            {
+                using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
+                {
+                    Gpx route = (Gpx)serializer.Deserialize(stringReader);
+                    usersRouteCoordinates.Add(new RouteWithCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt));
+                }
+            }
+            return usersRouteCoordinates;
+        }
+
+        public IEnumerable<SituationRecord> GetEventsOnUsersRoute(IEnumerable<Trkpt> routePoints, IEnumerable<SituationRecord> situations)
+        {
+            var result = new List<SituationRecord>();
+            var convertedCoordinates = _geoService.ConvertCoordinates(situations);
+            foreach (Trkpt routePoint in routePoints)
+            {
+                foreach (SituationRecord situation in situations)
+                {
+                    WgsPoint wgsPoint = convertedCoordinates[situation.id];
+                    if (_geoService.AreCoordinatesWithinRadius(routePoint.Lat, routePoint.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
+                        !result.Any(x => x.id == situation.id))
+                    {
+                        result.Add(situation);
+                    }
+                }
+            }
+            return result;
+        }
+
         private void InvalidateExpiredRouteEvents()
         {
-            _trafficRouteRepository.InvalidateExpiredRouteEvents();
+            _trafficEventsRepository.InvalidateExpiredRouteEvents();
         }
 
         private async Task<List<SituationRecord>> GetActiveTrafficEvents()
@@ -145,7 +155,7 @@ namespace TrafficEventsInformer.Services
                 var situations = new List<SituationRecord>();
                 if (response.IsSuccessStatusCode)
                 {
-                    var content =  await response.Content.ReadAsStringAsync();
+                    var content = await response.Content.ReadAsStringAsync();
                     var serializer = new XmlSerializer(typeof(D2LogicalModel));
                     using (StringReader stringReader = new StringReader(content))
                     {

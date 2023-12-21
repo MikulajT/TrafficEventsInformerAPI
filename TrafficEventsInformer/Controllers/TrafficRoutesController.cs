@@ -1,19 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Services;
 
 namespace TrafficEventsInformer.Controllers
 {
+    [ApiController]
     public class TrafficRoutesController : ControllerBase
     {
-        private readonly ITrafficRouteService _trafficRouteService;
-        private readonly IStringLocalizer<TrafficRoutesController> _localizer;
+        private readonly ITrafficRoutesService _trafficRouteService;
 
-        public TrafficRoutesController(ITrafficRouteService trafficRouteService, IStringLocalizer<TrafficRoutesController> localizer)
+        public TrafficRoutesController(ITrafficRoutesService trafficRouteService)
         {
             _trafficRouteService = trafficRouteService;
-            _localizer = localizer;
         }
 
         [HttpGet]
@@ -21,20 +19,6 @@ namespace TrafficEventsInformer.Controllers
         public IActionResult GetTrafficRoutes()
         {
             return Ok(_trafficRouteService.GetTrafficRouteNames());
-        }
-
-        [HttpGet]
-        [Route("api/trafficRoutes/{routeId:int}/events")]
-        public IActionResult GetRouteEventNames(int routeId)
-        {
-            return Ok(_trafficRouteService.GetRouteEventNames(routeId));
-        }
-
-        [HttpGet]
-        [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
-        public IActionResult GetRouteEventDetail(int routeId, string eventId)
-        {
-            return Ok(_trafficRouteService.GetRouteEventDetail(routeId, eventId));
         }
 
         [HttpPost]

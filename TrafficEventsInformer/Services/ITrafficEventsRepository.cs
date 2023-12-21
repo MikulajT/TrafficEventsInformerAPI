@@ -2,16 +2,12 @@
 
 namespace TrafficEventsInformer.Services
 {
-    public interface ITrafficRouteRepository
+    public interface ITrafficEventsRepository
     {
-        IEnumerable<TrafficRoute> GetTrafficRouteNames();
         IEnumerable<RouteEvent> GetRouteEventNames(int routeId);
         RouteEvent GetRouteEventDetail(int routeId, string eventId);
-        void AddRoute(string routeName, string routeCoordinates);
-        IEnumerable<TrafficRoute> GetUsersRoutes();
-        bool RouteEventExists(int routeId, string eventId);
         void AddRouteEvent(RouteEvent routeEvent);
-        void DeleteRoute(int routeId);
+        bool RouteEventExists(int routeId, string eventId);
         void InvalidateExpiredRouteEvents();
     }
 }
