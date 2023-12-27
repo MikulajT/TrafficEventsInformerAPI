@@ -22,17 +22,14 @@ namespace TrafficEventsInformer.Ef
                 entity.Property(e => e.Name).HasMaxLength(50);
                 entity.Property(e => e.Coordinates).HasColumnType("xml");
             });
-            //modelBuilder.Ignore<RouteEvent>();
             modelBuilder.Entity<RouteEvent>(entity =>
             {
-                entity.HasKey(e => new { e.Id, e.RouteId });
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasMaxLength(36);
                 entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.HasOne(b => b.TrafficRoute)
-                    .WithMany(a => a.Events)
-                    .HasForeignKey(b => b.RouteId)
-                    .IsRequired();
             });
+            //modelBuilder.Ignore<TrafficRoute>();
+            //modelBuilder.Ignore<RouteEvent>();
         }
     }
 }

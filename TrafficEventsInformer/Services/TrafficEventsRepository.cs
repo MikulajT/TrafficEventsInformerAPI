@@ -26,10 +26,13 @@ namespace TrafficEventsInformer.Services
         {
             return _dbContext.RouteEvent.Where(x => x.RouteId == routeId && x.Id == eventId).Select(x => new RouteEvent()
             {
-                TrafficRoute = new TrafficRoute()
+                TrafficRoute = new List<TrafficRoute>()
                 {
-                    Id = x.RouteId,
-                    Name = x.TrafficRoute.Name,
+                    new TrafficRoute()
+                    {
+                        Id = x.RouteId,
+                        Name = x.TrafficRoute.Single(x => x.Id == routeId).Name,
+                    }
                 },
                 Id = x.Id,
                 Type = x.Type,

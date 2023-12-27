@@ -14,6 +14,6 @@
         public double EndPointY { get; set; }
         public int RouteId { get; set; }
         public bool Expired { get; set; }
-        public TrafficRoute TrafficRoute { get; set; }
+        public List<TrafficRoute> TrafficRoute { get; set; }
     }
 }
