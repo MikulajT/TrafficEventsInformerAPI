@@ -13,8 +13,8 @@ namespace TrafficEventsInformer.Services
         }
         public IEnumerable<RouteEvent> GetRouteEventNames(int routeId)
         {
-            return _dbContext.RouteEvent
-                .Where(x => x.RouteId == routeId && !x.Expired)
+            return _dbContext.RouteEvents
+                .Where(x => routeId == x.TrafficRoutes.Single(x => x.Id == routeId).Id && !x.Expired)
                 .Select(x => new RouteEvent()
                 {
                     Id = x.Id,
@@ -24,15 +24,12 @@ namespace TrafficEventsInformer.Services
 
         public RouteEvent GetRouteEventDetail(int routeId, string eventId)
         {
-            return _dbContext.RouteEvent.Where(x => x.RouteId == routeId && x.Id == eventId).Select(x => new RouteEvent()
+            TrafficRoute trafficRoute = _dbContext.TrafficRoutes.Single(x => x.Id == routeId);
+            return _dbContext.RouteEvents.Where(x => routeId == trafficRoute.Id && x.Id == eventId).Select(x => new RouteEvent()
             {
-                TrafficRoute = new List<TrafficRoute>()
+                TrafficRoutes = new List<TrafficRoute>()
                 {
-                    new TrafficRoute()
-                    {
-                        Id = x.RouteId,
-                        Name = x.TrafficRoute.Single(x => x.Id == routeId).Name,
-                    }
+                    trafficRoute
                 },
                 Id = x.Id,
                 Type = x.Type,
@@ -48,18 +45,30 @@ namespace TrafficEventsInformer.Services
 
         public void AddRouteEvent(RouteEvent routeEvent)
         {
-            _dbContext.RouteEvent.Add(routeEvent);
+            _dbContext.RouteEvents.Add(routeEvent);
             _dbContext.SaveChanges();
         }
 
-        public bool RouteEventExists(int routeId, string eventId)
+        public bool RouteEventExists( string eventId)
         {
-            return _dbContext.RouteEvent.Any(x => x.RouteId == routeId && x.Id == eventId);
+            return _dbContext.RouteEvents.Any(x => x.Id == eventId);
         }
 
         public void InvalidateExpiredRouteEvents()
         {
-            var expiredEvents = _dbContext.RouteEvent.Where(x => !x.Expired && DateTime.Now > x.EndDate);
+            var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired && DateTime.Now > x.EndDate);
+            foreach (var expiredEvent in expiredEvents)
+            {
+                expiredEvent.Expired = true;
+            }
+            _dbContext.SaveChanges();
+        }
+
+        public void InvalidateExpiredRouteEvents(int routeId)
+        {
+            var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired &&
+                DateTime.Now > x.EndDate &&
+                routeId == x.TrafficRoutes.Single(x => x.Id == routeId).Id);
             foreach (var expiredEvent in expiredEvents)
             {
                 expiredEvent.Expired = true;

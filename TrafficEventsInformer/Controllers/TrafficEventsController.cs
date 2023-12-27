@@ -4,7 +4,6 @@ using TrafficEventsInformer.Services;
 namespace TrafficEventsInformer.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
     public class TrafficEventsController : ControllerBase
     {
         private readonly ITrafficEventsService _trafficEventsService;
@@ -40,8 +39,7 @@ namespace TrafficEventsInformer.Controllers
         [Route("api/trafficRoutes/{routeId:int}/events/sync")]
         public async Task<IActionResult> SyncRouteEvents(int routeId)
         {
-            await _trafficEventsService.SyncRouteEvents(routeId);
-            return Ok();
+            return Ok(await _trafficEventsService.SyncRouteEvents(routeId));
         }
     }
 }

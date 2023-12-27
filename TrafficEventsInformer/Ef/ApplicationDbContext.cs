@@ -10,8 +10,8 @@ namespace TrafficEventsInformer.Ef
         {
         }
 
-        public DbSet<TrafficRoute> TrafficRoute { get; set; }
-        public DbSet<RouteEvent> RouteEvent { get; set; }
+        public DbSet<TrafficRoute> TrafficRoutes { get; set; }
+        public DbSet<RouteEvent> RouteEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

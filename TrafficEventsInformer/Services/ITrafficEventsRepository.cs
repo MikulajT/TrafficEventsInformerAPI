@@ -7,7 +7,8 @@ namespace TrafficEventsInformer.Services
         IEnumerable<RouteEvent> GetRouteEventNames(int routeId);
         RouteEvent GetRouteEventDetail(int routeId, string eventId);
         void AddRouteEvent(RouteEvent routeEvent);
-        bool RouteEventExists(int routeId, string eventId);
+        bool RouteEventExists(string eventId);
         void InvalidateExpiredRouteEvents();
+        void InvalidateExpiredRouteEvents(int routeId);
     }
 }

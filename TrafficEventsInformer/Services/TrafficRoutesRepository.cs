@@ -14,7 +14,7 @@ namespace TrafficEventsInformer.Services
 
         public IEnumerable<TrafficRoute> GetTrafficRouteNames()
         {
-            return _dbContext.TrafficRoute.Select(x => new TrafficRoute()
+            return _dbContext.TrafficRoutes.Select(x => new TrafficRoute()
             {
                 Id = x.Id,
                 Name = x.Name
@@ -23,7 +23,7 @@ namespace TrafficEventsInformer.Services
 
         public void AddRoute(string routeName, string routeCoordinates)
         {
-            _dbContext.TrafficRoute.Add(new TrafficRoute()
+            _dbContext.TrafficRoutes.Add(new TrafficRoute()
             {
                 Name = routeName,
                 Coordinates = routeCoordinates
@@ -33,13 +33,18 @@ namespace TrafficEventsInformer.Services
 
         public IEnumerable<TrafficRoute> GetUsersRoutes()
         {
-            return _dbContext.TrafficRoute;
+            return _dbContext.TrafficRoutes;
+        }
+
+        public TrafficRoute GetUsersRoute(int routeId)
+        {
+            return _dbContext.TrafficRoutes.Single(x => x.Id == routeId);
         }
 
         public void DeleteRoute(int routeId)
         {
-            var route = _dbContext.TrafficRoute.Single(x => x.Id == routeId);
-            _dbContext.TrafficRoute.Remove(route);
+            var route = _dbContext.TrafficRoutes.Single(x => x.Id == routeId);
+            _dbContext.TrafficRoutes.Remove(route);
             _dbContext.SaveChanges();
         }
     }

@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Localization;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Models.UsersRoute;
@@ -11,16 +8,10 @@ namespace TrafficEventsInformer.Services
     public class TrafficRoutesService : ITrafficRoutesService
     {
         private readonly ITrafficRoutesRepository _trafficRouteRepository;
-        private readonly IGeoService _geoService;
-        private readonly IConfiguration _config;
-        private readonly IStringLocalizer<TrafficRoutesService> _localizer;
 
-        public TrafficRoutesService(ITrafficRoutesRepository trafficRouteRepository, IGeoService geoService, IConfiguration configuration, IStringLocalizer<TrafficRoutesService> stringLocalizer)
+        public TrafficRoutesService(ITrafficRoutesRepository trafficRouteRepository)
         {
             _trafficRouteRepository = trafficRouteRepository;
-            _geoService = geoService;
-            _config = configuration;
-            _localizer = stringLocalizer;
         }
 
         public IEnumerable<GetTrafficRouteNamesResponse> GetTrafficRouteNames()

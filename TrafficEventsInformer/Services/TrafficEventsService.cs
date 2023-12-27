@@ -69,9 +69,11 @@ namespace TrafficEventsInformer.Services
             InvalidateExpiredRouteEvents();
         }
 
-        public async Task SyncRouteEvents(int routeId)
+        public async Task<IEnumerable<GetRouteEventNamesResponse>> SyncRouteEvents(int routeId)
         {
-            throw new NotImplementedException();
+            await AddNewRouteEvents(routeId);
+            InvalidateExpiredRouteEvents(routeId);
+            return GetRouteEventNames(routeId);
         }
 
         private async Task AddNewRouteEvents()
@@ -80,28 +82,13 @@ namespace TrafficEventsInformer.Services
             List<RouteWithCoordinates> routesWithCoordinates = GetUsersRoutesWithCoordinates().ToList();
             foreach (var routeWithCoordinates in routesWithCoordinates)
             {
-                List<SituationRecord> routeEvents = GetEventsOnUsersRoute(routeWithCoordinates.RouteCoordinates, activeTrafficEvents).ToList();
-                foreach (var routeEvent in routeEvents)
-                {
-                    if (!_trafficEventsRepository.RouteEventExists(routeWithCoordinates.RouteId, routeEvent.id))
-                    {
-                        _trafficEventsRepository.AddRouteEvent(new RouteEvent()
-                        {
-                            Id = routeEvent.id,
-                            Type = (int)Enum.Parse<EventTypes>(routeEvent.GetType().Name),
-                            Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0],
-                            Description = routeEvent.generalPublicComment[0].comment.values[0].Value,
-                            StartDate = routeEvent.validity.validityTimeSpecification.overallStartTime,
-                            EndDate = routeEvent.validity.validityTimeSpecification.overallEndTime,
-                            StartPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskX,
-                            StartPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskY,
-                            EndPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskX,
-                            EndPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskY,
-                            RouteId = routeWithCoordinates.RouteId
-                        });
-                    }
-                }
+                AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
             }
+        }
+
+        private void InvalidateExpiredRouteEvents()
+        {
+            _trafficEventsRepository.InvalidateExpiredRouteEvents();
         }
 
         public IEnumerable<RouteWithCoordinates> GetUsersRoutesWithCoordinates()
@@ -120,28 +107,16 @@ namespace TrafficEventsInformer.Services
             return usersRouteCoordinates;
         }
 
-        public IEnumerable<SituationRecord> GetEventsOnUsersRoute(IEnumerable<Trkpt> routePoints, IEnumerable<SituationRecord> situations)
+        private async Task AddNewRouteEvents(int routeId)
         {
-            var result = new List<SituationRecord>();
-            var convertedCoordinates = _geoService.ConvertCoordinates(situations);
-            foreach (Trkpt routePoint in routePoints)
-            {
-                foreach (SituationRecord situation in situations)
-                {
-                    WgsPoint wgsPoint = convertedCoordinates[situation.id];
-                    if (_geoService.AreCoordinatesWithinRadius(routePoint.Lat, routePoint.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
-                        !result.Any(x => x.id == situation.id))
-                    {
-                        result.Add(situation);
-                    }
-                }
-            }
-            return result;
+            List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
+            RouteWithCoordinates routeWithCoordinates = GetUsersRouteWithCoordinates(routeId);
+            AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
         }
 
-        private void InvalidateExpiredRouteEvents()
+        private void InvalidateExpiredRouteEvents(int routeId)
         {
-            _trafficEventsRepository.InvalidateExpiredRouteEvents();
+            _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId);
         }
 
         private async Task<List<SituationRecord>> GetActiveTrafficEvents()
@@ -168,6 +143,66 @@ namespace TrafficEventsInformer.Services
                 }
                 return situations;
             }
+        }
+
+        public RouteWithCoordinates GetUsersRouteWithCoordinates(int routeId)
+        {
+            TrafficRoute usersRoute = _trafficRoutesRepository.GetUsersRoute(routeId);
+            XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
+            using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
+            {
+                Gpx route = (Gpx)serializer.Deserialize(stringReader);
+                return new RouteWithCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt);
+            }
+        }
+
+        private void AddRouteEvent(List<SituationRecord> activeEvents, RouteWithCoordinates route)
+        {
+            List<SituationRecord> routeEvents = GetEventsOnUsersRoute(route.RouteCoordinates, activeEvents).ToList();
+            foreach (var routeEvent in routeEvents)
+            {
+                if (!_trafficEventsRepository.RouteEventExists(routeEvent.id))
+                {
+                    TrafficRoute trafficRoute = _trafficRoutesRepository.GetUsersRoute(route.RouteId);
+                    _trafficEventsRepository.AddRouteEvent(new RouteEvent()
+                    {
+                        Id = routeEvent.id,
+                        Type = (int)Enum.Parse<EventTypes>(routeEvent.GetType().Name),
+                        Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0],
+                        Description = routeEvent.generalPublicComment[0].comment.values[0].Value,
+                        StartDate = routeEvent.validity.validityTimeSpecification.overallStartTime,
+                        EndDate = routeEvent.validity.validityTimeSpecification.overallEndTime,
+                        StartPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskX,
+                        StartPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskY,
+                        EndPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskX,
+                        EndPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskY,
+                        Expired = false,
+                        TrafficRoutes = new List<TrafficRoute>()
+                        {
+                            trafficRoute
+                        }
+                    });
+                }
+            }
+        }
+
+        public IEnumerable<SituationRecord> GetEventsOnUsersRoute(IEnumerable<Trkpt> routePoints, IEnumerable<SituationRecord> situations)
+        {
+            var result = new List<SituationRecord>();
+            var convertedCoordinates = _geoService.ConvertCoordinates(situations);
+            foreach (Trkpt routePoint in routePoints)
+            {
+                foreach (SituationRecord situation in situations)
+                {
+                    WgsPoint wgsPoint = convertedCoordinates[situation.id];
+                    if (_geoService.AreCoordinatesWithinRadius(routePoint.Lat, routePoint.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
+                        !result.Any(x => x.id == situation.id))
+                    {
+                        result.Add(situation);
+                    }
+                }
+            }
+            return result;
         }
     }
 }

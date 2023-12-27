@@ -30,7 +30,7 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpDelete]
-        [Route("api/trafficRoutes")]
+        [Route("api/trafficRoutes/{routeId:int}")]
         public IActionResult DeleteRoute(int routeId)
         {
             _trafficRouteService.DeleteRoute(routeId);
