@@ -54,7 +54,7 @@ namespace TrafficEventsInformer.Services
                 result.Description = routeEvent.Description;
                 result.StartDate = routeEvent.StartDate;
                 result.EndDate = routeEvent.EndDate;
-                result.DaysRemaining = (routeEvent.EndDate - routeEvent.StartDate).Days;
+                result.DaysRemaining = (routeEvent.EndDate - DateTime.Now).Days;
                 result.StartPointX = routeEvent.StartPointX;
                 result.StartPointY = routeEvent.StartPointY;
                 result.EndPointX = routeEvent.EndPointX;
