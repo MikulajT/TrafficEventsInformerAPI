@@ -14,12 +14,12 @@ namespace TrafficEventsInformer.Services
         private readonly ITrafficEventsRepository _trafficEventsRepository;
         private readonly IGeoService _geoService;
         private readonly IConfiguration _config;
-        private readonly IStringLocalizer<TrafficRoutesService> _localizer;
+        private readonly IStringLocalizer<TrafficEventsService> _localizer;
         public TrafficEventsService(ITrafficRoutesRepository trafficRoutesRepository,
             ITrafficEventsRepository trafficEventsRepository,
             IGeoService geoService,
             IConfiguration config,
-            IStringLocalizer<TrafficRoutesService> localizer)
+            IStringLocalizer<TrafficEventsService> localizer)
         {
             _trafficRoutesRepository = trafficRoutesRepository;
             _trafficEventsRepository = trafficEventsRepository;
