@@ -51,6 +51,11 @@ namespace TrafficEventsInformer.Services
             _trafficRouteRepository.DeleteRoute(routeId);
         }
 
+        public void UpdateRoute(UpdateRouteRequest requestData)
+        {
+            _trafficRouteRepository.UpdateRoute(requestData);
+        }
+
         private string SanitizeXml(string xml)
         {
             // Define a regex pattern to match forbidden characters

@@ -1,5 +1,6 @@
 ﻿using TrafficEventsInformer.Ef;
 using TrafficEventsInformer.Ef.Models;
+using TrafficEventsInformer.Models;
 
 namespace TrafficEventsInformer.Services
 {
@@ -45,6 +46,13 @@ namespace TrafficEventsInformer.Services
         {
             var route = _dbContext.TrafficRoutes.Single(x => x.Id == routeId);
             _dbContext.TrafficRoutes.Remove(route);
+            _dbContext.SaveChanges();
+        }
+
+        public void UpdateRoute(UpdateRouteRequest requestData)
+        {
+            var route = _dbContext.TrafficRoutes.Single(x => x.Id == requestData.RouteId);
+            route.Name = requestData.RouteName;
             _dbContext.SaveChanges();
         }
     }

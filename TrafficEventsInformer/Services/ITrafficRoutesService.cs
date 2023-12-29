@@ -7,5 +7,6 @@ namespace TrafficEventsInformer.Services
         IEnumerable<GetTrafficRouteNamesResponse> GetTrafficRouteNames();
         Task AddRouteAsync(AddRouteRequest routeRequest);
         void DeleteRoute(int routeId);
+        void UpdateRoute(UpdateRouteRequest requestData);
     }
 }

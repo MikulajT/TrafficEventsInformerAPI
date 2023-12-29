@@ -36,5 +36,14 @@ namespace TrafficEventsInformer.Controllers
             _trafficRouteService.DeleteRoute(routeId);
             return Ok();
         }
+
+        [HttpPut]
+        [Route("api/trafficRoutes/{routeId:int}")]
+        public IActionResult UpdateRoute(int routeId, [FromBody] UpdateRouteRequest requestData)
+        {
+            requestData.RouteId = routeId;
+            _trafficRouteService.UpdateRoute(requestData);
+            return Ok();
+        }
     }
 }
