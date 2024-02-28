@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Serilog;
 using System.Globalization;
+using System.Reflection;
 using TrafficEventsInformer.Ef;
 using TrafficEventsInformer.Services;
 
@@ -26,6 +28,14 @@ namespace TrafficEventsInformer
                 options.SupportedCultures = supportedCultures;
                 options.SupportedUICultures = supportedCultures;
             });
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Warning()
+                .WriteTo.File($"Logs/{Assembly.GetExecutingAssembly().GetName().Name}.log")
+                .WriteTo.Console()
+                .CreateLogger();
+                        builder.Logging.ClearProviders();
+                        builder.Logging.AddSerilog();
 
             // Add services to the container.
             builder.Services.AddControllers();
