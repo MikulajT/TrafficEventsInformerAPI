@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "TrafficEventsInformer": {
+    "TrafficEventsInformer.Development": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",
@@ -10,14 +10,25 @@
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7245;http://192.168.88.7:7246"
     },
-    "IIS Express": {
-      "commandName": "IISExpress",
+    "TrafficEventsInformer.Production": {
+      "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7245;http://192.168.88.7:7246"
     }
+    //,
+    //"IIS Express": {
+    //  "commandName": "IISExpress",
+    //  "launchBrowser": true,
+    //  "launchUrl": "swagger",
+    //  "environmentVariables": {
+    //    "ASPNETCORE_ENVIRONMENT": "Development"
+    //  }
+    //}
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {

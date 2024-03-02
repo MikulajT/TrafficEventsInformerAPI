@@ -15,6 +15,18 @@ namespace TrafficEventsInformer
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+            // Load configuration
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.Configuration.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
+            }
+            else
+            {
+                builder.Configuration.AddJsonFile("appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+            }
+
             // Localization
             builder.Services.AddLocalization(options => options.ResourcesPath = "Resources/Services");
             var supportedCultures = new[]
@@ -56,12 +68,8 @@ namespace TrafficEventsInformer
             // Localization
             app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
             //app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();

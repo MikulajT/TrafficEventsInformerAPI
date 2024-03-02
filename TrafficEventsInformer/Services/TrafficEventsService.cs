@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.Localization;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Localization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
+using TrafficEventsInformer.Models.Configuration;
 using TrafficEventsInformer.Models.UsersRoute;
 
 namespace TrafficEventsInformer.Services
@@ -123,7 +125,8 @@ namespace TrafficEventsInformer.Services
         {
             using (var httpClient = new HttpClient())
             {
-                var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_config["CommonTiLogin"]}:{_config["CommonTiPassword"]}"));
+                CommonTI commonTICredentials = _config.GetSection("CommonTI").Get<CommonTI>();
+                var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{commonTICredentials.Username}:{commonTICredentials.Password}"));
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
                 var apiUrl = "https://mobilitydata.rsd.cz/Resources/Dynamic/CommonTIDatex/";
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
