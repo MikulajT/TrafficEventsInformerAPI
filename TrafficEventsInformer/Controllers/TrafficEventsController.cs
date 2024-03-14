@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TrafficEventsInformer.Models.Fcm;
 using TrafficEventsInformer.Services;
 
 namespace TrafficEventsInformer.Controllers
@@ -7,10 +8,32 @@ namespace TrafficEventsInformer.Controllers
     public class TrafficEventsController : ControllerBase
     {
         private readonly ITrafficEventsService _trafficEventsService;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public TrafficEventsController(ITrafficEventsService trafficEventsService)
+        public TrafficEventsController(ITrafficEventsService trafficEventsService, IPushNotificationService pushNotificationService)
         {
             _trafficEventsService = trafficEventsService;
+            _pushNotificationService = pushNotificationService;
+        }
+
+        [HttpGet]
+        [Route("api/trafficRoutes/fcmTest")]
+        public async Task<IActionResult> fcmTest()
+        {
+            bool success = await _pushNotificationService.SendPushNotificationAsync(new PushNotificationDto()
+            {
+                Body = "body",
+                Title = "title",
+                DeviceToken = "dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS"
+            });
+            if (success)
+            {
+                return Ok("Message successfully sent.");
+            }
+            else
+            {
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
         }
 
         [HttpGet]
