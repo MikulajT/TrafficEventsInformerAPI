@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -49,6 +51,11 @@ namespace TrafficEventsInformer
                         builder.Logging.ClearProviders();
                         builder.Logging.AddSerilog();
 
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "trafficeventsinformer-firebase-adminsdk-610ik-10035f39e0.json")),
+            });
+
             // Add services to the container.
             builder.Services.AddControllers();
 
@@ -62,6 +69,7 @@ namespace TrafficEventsInformer
             builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
             builder.Services.AddTransient<ITrafficEventsRepository, TrafficEventsRepository>();
             builder.Services.AddTransient<ITrafficEventsService, TrafficEventsService>();
+            builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
 
             var app = builder.Build();
 
