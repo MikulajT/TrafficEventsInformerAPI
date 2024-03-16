@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using TrafficEventsInformer.Models.Fcm;
 using TrafficEventsInformer.Services;
 
 namespace TrafficEventsInformer.Controllers
@@ -18,22 +17,11 @@ namespace TrafficEventsInformer.Controllers
 
         [HttpGet]
         [Route("api/trafficRoutes/fcmTest")]
-        public async Task<IActionResult> fcmTest()
+        public IActionResult fcmTest()
         {
-            bool success = await _pushNotificationService.SendPushNotificationAsync(new PushNotificationDto()
-            {
-                Body = "body",
-                Title = "title",
-                DeviceToken = "dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS"
-            });
-            if (success)
-            {
-                return Ok("Message successfully sent.");
-            }
-            else
-            {
-                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
-            }
+            _pushNotificationService.SendEventStartNotificationAsync(DateTime.Now, new string[] { "nazev trasy1", "nazev trasy2" });
+            _pushNotificationService.SendEventEndNotificationAsync(DateTime.Now, new string[] { "nazev trasy1", "nazev trasy2" });
+            return Ok("Message successfully sent.");
         }
 
         [HttpGet]

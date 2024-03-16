@@ -1,5 +1,6 @@
 ﻿using TrafficEventsInformer.Ef;
 using TrafficEventsInformer.Ef.Models;
+using TrafficEventsInformer.Models;
 
 namespace TrafficEventsInformer.Services
 {
@@ -54,7 +55,7 @@ namespace TrafficEventsInformer.Services
             return _dbContext.RouteEvents.Any(x => x.Id == eventId);
         }
 
-        public void InvalidateExpiredRouteEvents()
+        public IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents()
         {
             var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired && DateTime.Now > x.EndDate);
             foreach (var expiredEvent in expiredEvents)
@@ -62,9 +63,15 @@ namespace TrafficEventsInformer.Services
                 expiredEvent.Expired = true;
             }
             _dbContext.SaveChanges();
+            return expiredEvents.Select(x => new ExpiredRouteEventDto()
+            {
+                RouteNames = x.TrafficRoutes.Select(y => y.Name).ToArray(),
+                StartDate = x.StartDate,
+                EndDate = x.EndDate
+            });
         }
 
-        public void InvalidateExpiredRouteEvents(int routeId)
+        public IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents(int routeId)
         {
             var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired &&
                 DateTime.Now > x.EndDate &&
@@ -74,6 +81,12 @@ namespace TrafficEventsInformer.Services
                 expiredEvent.Expired = true;
             }
             _dbContext.SaveChanges();
+            return expiredEvents.Select(x => new ExpiredRouteEventDto()
+            {
+                RouteNames = x.TrafficRoutes.Select(y => y.Name).ToArray(),
+                StartDate = x.StartDate,
+                EndDate = x.EndDate
+            });
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using TrafficEventsInformer.Ef.Models;
+using TrafficEventsInformer.Models;
 
 namespace TrafficEventsInformer.Services
 {
@@ -8,7 +9,7 @@ namespace TrafficEventsInformer.Services
         RouteEvent GetRouteEventDetail(int routeId, string eventId);
         void AddRouteEvent(RouteEvent routeEvent);
         bool RouteEventExists(string eventId);
-        void InvalidateExpiredRouteEvents();
-        void InvalidateExpiredRouteEvents(int routeId);
+        IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents();
+        IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents(int routeId);
     }
 }

@@ -1,11 +1,11 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Localization;
+﻿using Microsoft.Extensions.Localization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Models.Configuration;
+using TrafficEventsInformer.Models.Fcm;
 using TrafficEventsInformer.Models.UsersRoute;
 
 namespace TrafficEventsInformer.Services
@@ -17,17 +17,20 @@ namespace TrafficEventsInformer.Services
         private readonly IGeoService _geoService;
         private readonly IConfiguration _config;
         private readonly IStringLocalizer<TrafficEventsService> _localizer;
+        private readonly IPushNotificationService _pushNotificationService;
         public TrafficEventsService(ITrafficRoutesRepository trafficRoutesRepository,
             ITrafficEventsRepository trafficEventsRepository,
             IGeoService geoService,
             IConfiguration config,
-            IStringLocalizer<TrafficEventsService> localizer)
+            IStringLocalizer<TrafficEventsService> localizer,
+            IPushNotificationService pushNotificationService)
         {
             _trafficRoutesRepository = trafficRoutesRepository;
             _trafficEventsRepository = trafficEventsRepository;
             _geoService = geoService;
             _config = config;
             _localizer = localizer;
+            _pushNotificationService = pushNotificationService;
         }
 
         public IEnumerable<GetRouteEventNamesResponse> GetRouteEventNames(int routeId)
@@ -84,7 +87,7 @@ namespace TrafficEventsInformer.Services
             List<RouteWithCoordinates> routesWithCoordinates = GetUsersRoutesWithCoordinates().ToList();
             foreach (var routeWithCoordinates in routesWithCoordinates)
             {
-                AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
+                await AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
             }
         }
 
@@ -113,12 +116,16 @@ namespace TrafficEventsInformer.Services
         {
             List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
             RouteWithCoordinates routeWithCoordinates = GetUsersRouteWithCoordinates(routeId);
-            AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
+            await AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
         }
 
         private void InvalidateExpiredRouteEvents(int routeId)
         {
-            _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId);
+            List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
+            foreach (var expiredRouteEvent in expiredRouteEvents)
+            {
+                _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames);
+            }
         }
 
         private async Task<List<SituationRecord>> GetActiveTrafficEvents()
@@ -159,7 +166,7 @@ namespace TrafficEventsInformer.Services
             }
         }
 
-        private void AddRouteEvent(List<SituationRecord> activeEvents, RouteWithCoordinates route)
+        private async Task AddRouteEvent(List<SituationRecord> activeEvents, RouteWithCoordinates route)
         {
             List<SituationRecord> routeEvents = GetEventsOnUsersRoute(route.RouteCoordinates, activeEvents).ToList();
             foreach (var routeEvent in routeEvents)
@@ -167,7 +174,7 @@ namespace TrafficEventsInformer.Services
                 if (!_trafficEventsRepository.RouteEventExists(routeEvent.id))
                 {
                     TrafficRoute trafficRoute = _trafficRoutesRepository.GetUsersRoute(route.RouteId);
-                    _trafficEventsRepository.AddRouteEvent(new RouteEvent()
+                    RouteEvent newRouteEvent = new RouteEvent()
                     {
                         Id = routeEvent.id,
                         Type = (int)Enum.Parse<EventTypes>(routeEvent.GetType().Name),
@@ -184,7 +191,9 @@ namespace TrafficEventsInformer.Services
                         {
                             trafficRoute
                         }
-                    });
+                    };
+                    _trafficEventsRepository.AddRouteEvent(newRouteEvent);
+                    _pushNotificationService.SendEventStartNotificationAsync(newRouteEvent.StartDate, new string[] { trafficRoute.Name });
                 }
             }
         }
