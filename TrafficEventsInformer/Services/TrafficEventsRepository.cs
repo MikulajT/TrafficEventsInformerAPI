@@ -25,8 +25,9 @@ namespace TrafficEventsInformer.Services
 
         public RouteEvent GetRouteEventDetail(int routeId, string eventId)
         {
-            TrafficRoute trafficRoute = _dbContext.TrafficRoutes.Single(x => x.Id == routeId);
-            return _dbContext.RouteEvents.Where(x => routeId == trafficRoute.Id && x.Id == eventId).Select(x => new RouteEvent()
+            IQueryable<RouteEvent> routeEventQuery = _dbContext.RouteEvents.Where(x => x.Id == eventId);
+            TrafficRoute trafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId);
+            return routeEventQuery.Select(x => new RouteEvent()
             {
                 TrafficRoutes = new List<TrafficRoute>()
                 {
