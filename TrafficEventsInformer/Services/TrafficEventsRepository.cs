@@ -84,6 +84,7 @@ namespace TrafficEventsInformer.Services
             _dbContext.SaveChanges();
             return expiredEvents.Select(x => new ExpiredRouteEventDto()
             {
+                Id = x.Id,
                 RouteNames = x.TrafficRoutes.Select(y => y.Name).ToArray(),
                 StartDate = x.StartDate,
                 EndDate = x.EndDate
