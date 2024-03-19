@@ -36,13 +36,13 @@ namespace TrafficEventsInformer.Services
         public IEnumerable<GetRouteEventNamesResponse> GetRouteEventNames(int routeId)
         {
             List<GetRouteEventNamesResponse> result = new List<GetRouteEventNamesResponse>();
-            List<RouteEvent> routeEvents = _trafficEventsRepository.GetRouteEventNames(routeId).ToList();
+            Dictionary<string, string> routeEvents = _trafficEventsRepository.GetRouteEventNames(routeId);
             foreach (var routeEvent in routeEvents)
             {
                 result.Add(new GetRouteEventNamesResponse()
                 {
-                    Id = routeEvent.Id,
-                    Name = routeEvent.Name
+                    Id = routeEvent.Key,
+                    Name = routeEvent.Value
                 });
             }
             return result;
@@ -178,7 +178,6 @@ namespace TrafficEventsInformer.Services
                     {
                         Id = routeEvent.id,
                         Type = (int)Enum.Parse<EventTypes>(routeEvent.GetType().Name),
-                        Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0],
                         Description = routeEvent.generalPublicComment[0].comment.values[0].Value,
                         StartDate = routeEvent.validity.validityTimeSpecification.overallStartTime,
                         EndDate = routeEvent.validity.validityTimeSpecification.overallEndTime,
@@ -186,13 +185,17 @@ namespace TrafficEventsInformer.Services
                         StartPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskY,
                         EndPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskX,
                         EndPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskY,
-                        Expired = false,
-                        TrafficRoutes = new List<TrafficRoute>()
-                        {
-                            trafficRoute
-                        }
+                        Expired = false
                     };
-                    _trafficEventsRepository.AddRouteEvent(newRouteEvent);
+
+                    TrafficRouteRouteEvent trafficRouteRouteEvent = new TrafficRouteRouteEvent()
+                    {
+                        TrafficRouteId = trafficRoute.Id,
+                        RouteEventId = newRouteEvent.Id,
+                        Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0]
+                    };
+
+                    _trafficEventsRepository.AddRouteEvent(newRouteEvent, trafficRouteRouteEvent);
                     _pushNotificationService.SendEventStartNotificationAsync(newRouteEvent.StartDate, new string[] { trafficRoute.Name }, newRouteEvent.Id);
                 }
             }

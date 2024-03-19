@@ -12,15 +12,11 @@ namespace TrafficEventsInformer.Services
         {
             _dbContext = dbContext;
         }
-        public IEnumerable<RouteEvent> GetRouteEventNames(int routeId)
+        public Dictionary<string, string> GetRouteEventNames(int routeId)
         {
-            return _dbContext.RouteEvents
-                .Where(x => routeId == x.TrafficRoutes.Single(x => x.Id == routeId).Id && !x.Expired)
-                .Select(x => new RouteEvent()
-                {
-                    Id = x.Id,
-                    Name = x.Name
-                });
+            return _dbContext.TrafficRouteRouteEvents
+                .Where(x => x.TrafficRouteId == routeId && !x.RouteEvent.Expired)
+                .ToDictionary(x => x.RouteEventId, x => x.Name);
         }
 
         public RouteEvent GetRouteEventDetail(int routeId, string eventId)
@@ -45,8 +41,9 @@ namespace TrafficEventsInformer.Services
             }).SingleOrDefault();
         }
 
-        public void AddRouteEvent(RouteEvent routeEvent)
+        public void AddRouteEvent(RouteEvent routeEvent, TrafficRouteRouteEvent trafficRouteRouteEvent)
         {
+            _dbContext.TrafficRouteRouteEvents.Add(trafficRouteRouteEvent);
             _dbContext.RouteEvents.Add(routeEvent);
             _dbContext.SaveChanges();
         }
