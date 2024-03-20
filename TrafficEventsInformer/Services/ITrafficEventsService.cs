@@ -8,5 +8,6 @@ namespace TrafficEventsInformer.Services
         GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId);
         Task SyncAllRouteEvents();
         Task<IEnumerable<GetRouteEventNamesResponse>> SyncRouteEvents(int routeId);
+        void RenameRouteEvent(int routeId, string eventId, string name);
     }
 }

@@ -11,5 +11,6 @@ namespace TrafficEventsInformer.Services
         bool RouteEventExists(string eventId);
         IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents();
         IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents(int routeId);
+        void RenameRouteEvent(int routeId, string eventId, string name);
     }
 }

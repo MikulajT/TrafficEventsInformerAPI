@@ -87,5 +87,12 @@ namespace TrafficEventsInformer.Services
                 EndDate = x.EndDate
             });
         }
+
+        public void RenameRouteEvent(int routeId, string eventId, string name)
+        {
+            TrafficRouteRouteEvent routeEvent = _dbContext.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId && x.RouteEventId == eventId);
+            routeEvent.Name = name;
+            _dbContext.SaveChanges();
+        }
     }
 }

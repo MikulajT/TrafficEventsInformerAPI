@@ -219,5 +219,10 @@ namespace TrafficEventsInformer.Services
             }
             return result;
         }
+
+        public void RenameRouteEvent(int routeId, string eventId, string name)
+        {
+            _trafficEventsRepository.RenameRouteEvent(routeId, eventId, name);
+        }
     }
 }

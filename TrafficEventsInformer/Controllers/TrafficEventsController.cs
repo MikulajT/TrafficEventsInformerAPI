@@ -52,5 +52,13 @@ namespace TrafficEventsInformer.Controllers
         {
             return Ok(await _trafficEventsService.SyncRouteEvents(routeId));
         }
+
+        [HttpPut]
+        [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
+        public IActionResult RenameRouteEvent(int routeId, string eventId, [FromBody] string name)
+        {
+            _trafficEventsService.RenameRouteEvent(routeId, eventId, name);
+            return Ok();
+        }
     }
 }
