@@ -19,26 +19,14 @@ namespace TrafficEventsInformer.Services
                 .ToDictionary(x => x.RouteEventId, x => x.Name);
         }
 
-        public RouteEvent GetRouteEventDetail(int routeId, string eventId)
+        public RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId)
         {
-            IQueryable<RouteEvent> routeEventQuery = _dbContext.RouteEvents.Where(x => x.Id == eventId);
-            TrafficRoute trafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId);
-            return routeEventQuery.Select(x => new RouteEvent()
+            return new RouteEventDetailEntities()
             {
-                TrafficRoutes = new List<TrafficRoute>()
-                {
-                    trafficRoute
-                },
-                Id = x.Id,
-                Type = x.Type,
-                Description = x.Description,
-                StartDate = x.StartDate,
-                EndDate = x.EndDate,
-                StartPointX = x.StartPointX,
-                StartPointY = x.StartPointY,
-                EndPointX = x.EndPointX,
-                EndPointY = x.EndPointY
-            }).SingleOrDefault();
+                RouteEvent = _dbContext.RouteEvents.SingleOrDefault(x => x.Id == eventId),
+                TrafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId),
+                TrafficRouteRouteEvent = _dbContext.TrafficRouteRouteEvents.SingleOrDefault(x => x.TrafficRouteId == routeId && x.RouteEventId == eventId)
+            };
         }
 
         public void AddRouteEvent(RouteEvent routeEvent, TrafficRouteRouteEvent trafficRouteRouteEvent)

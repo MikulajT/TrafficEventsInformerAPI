@@ -6,7 +6,7 @@ namespace TrafficEventsInformer.Services
     public interface ITrafficEventsRepository
     {
         Dictionary<string, string> GetRouteEventNames(int routeId);
-        RouteEvent GetRouteEventDetail(int routeId, string eventId);
+        RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId);
         void AddRouteEvent(RouteEvent routeEvent, TrafficRouteRouteEvent trafficRouteRouteEvent);
         bool RouteEventExists(string eventId);
         IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents();

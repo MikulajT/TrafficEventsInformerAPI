@@ -50,22 +50,23 @@ namespace TrafficEventsInformer.Services
 
         public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId)
         {
-            RouteEvent routeEvent = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId);
-            GetRouteEventDetailResponse result = new GetRouteEventDetailResponse();
-            if (routeEvent != null)
+            RouteEventDetailEntities eventDetailEntities = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId);
+            GetRouteEventDetailResponse routeEventDetail = new GetRouteEventDetailResponse();
+            if (eventDetailEntities != null)
             {
-                result.Id = routeEvent.Id;
-                result.Type = _localizer[((EventTypes)routeEvent.Type).ToString()];
-                result.Description = routeEvent.Description;
-                result.StartDate = routeEvent.StartDate;
-                result.EndDate = routeEvent.EndDate;
-                result.DaysRemaining = (routeEvent.EndDate - DateTime.Now).Days;
-                result.StartPointX = routeEvent.StartPointX;
-                result.StartPointY = routeEvent.StartPointY;
-                result.EndPointX = routeEvent.EndPointX;
-                result.EndPointY = routeEvent.EndPointY;
+                routeEventDetail.Id = eventDetailEntities.RouteEvent.Id;
+                routeEventDetail.Name = eventDetailEntities.TrafficRouteRouteEvent.Name;
+                routeEventDetail.Type = _localizer[((EventTypes)eventDetailEntities.RouteEvent.Type).ToString()];
+                routeEventDetail.Description = eventDetailEntities.RouteEvent.Description;
+                routeEventDetail.StartDate = eventDetailEntities.RouteEvent.StartDate;
+                routeEventDetail.EndDate = eventDetailEntities.RouteEvent.EndDate;
+                routeEventDetail.DaysRemaining = (eventDetailEntities.RouteEvent.EndDate - DateTime.Now).Days;
+                routeEventDetail.StartPointX = eventDetailEntities.RouteEvent.StartPointX;
+                routeEventDetail.StartPointY = eventDetailEntities.RouteEvent.StartPointY;
+                routeEventDetail.EndPointX = eventDetailEntities.RouteEvent.EndPointX;
+                routeEventDetail.EndPointY = eventDetailEntities.RouteEvent.EndPointY;
             }
-            return result;
+            return routeEventDetail;
         }
 
         public async Task SyncAllRouteEvents()
