@@ -142,6 +142,10 @@ namespace TrafficEventsInformer.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
+
+                    // RSD data temporary fix (The specified type is abstract: name='Roadworks')
+                    content = content.Replace("xsi:type=\"Roadworks\"", "xsi:type=\"ConstructionWorks\"");
+
                     var serializer = new XmlSerializer(typeof(D2LogicalModel));
                     using (StringReader stringReader = new StringReader(content))
                     {
