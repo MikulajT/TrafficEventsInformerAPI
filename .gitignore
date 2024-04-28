@@ -478,3 +478,5 @@ $RECYCLE.BIN/
 /TrafficEventsInformer/appsettings.json
 /TrafficEventsInformer/appsettings.Production.json
 /TrafficEventsInformer/trafficeventsinformer-firebase-adminsdk-610ik-10035f39e0.json
+
+/TrafficEventsInformer/Migrations
