@@ -12,6 +12,6 @@
         public double EndPointX { get; set; }
         public double EndPointY { get; set; }
         public bool Expired { get; set; }
-        public ICollection<TrafficRoute> TrafficRoutes { get; set; }
+        public ICollection<TrafficRouteRouteEvent> TrafficRouteRouteEvents { get; set; }
     }
 }

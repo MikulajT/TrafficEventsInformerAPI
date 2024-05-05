@@ -34,15 +34,16 @@ namespace TrafficEventsInformer.Ef
             {
                 entity.HasKey(e => new { e.TrafficRouteId, e.RouteEventId });
                 entity.HasOne(e => e.TrafficRoute)
-                    .WithMany()
+                    .WithMany(e => e.TrafficRouteRouteEvents)
                     .HasForeignKey(e => e.TrafficRouteId);
                 entity.HasOne(e => e.RouteEvent)
-                    .WithMany()
+                    .WithMany(e => e.TrafficRouteRouteEvents)
                     .HasForeignKey(e => e.RouteEventId);
                 entity.Property(e => e.Name).HasMaxLength(200);
             });
             //modelBuilder.Ignore<TrafficRoute>();
             //modelBuilder.Ignore<RouteEvent>();
+            //modelBuilder.Ignore<TrafficRouteRouteEvents>();
         }
     }
 }
