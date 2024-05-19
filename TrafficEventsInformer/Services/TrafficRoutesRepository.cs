@@ -1,4 +1,5 @@
-﻿using TrafficEventsInformer.Ef;
+﻿using System.Runtime.CompilerServices;
+using TrafficEventsInformer.Ef;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
 
@@ -44,8 +45,20 @@ namespace TrafficEventsInformer.Services
 
         public void DeleteRoute(int routeId)
         {
+            // Get joining table records
+            var trafficRouteRouteEvents = _dbContext.TrafficRouteRouteEvents.Where(x => x.TrafficRouteId == routeId).ToList();
+
+            // Get Route events records
+            var routeEventIDs = trafficRouteRouteEvents.Select(x => x.RouteEventId);
+            var routeEvents = _dbContext.RouteEvents.Where(x => routeEventIDs.Contains(x.Id));
+
+            // Get route record
             var route = _dbContext.TrafficRoutes.Single(x => x.Id == routeId);
+
+            _dbContext.TrafficRouteRouteEvents.RemoveRange(trafficRouteRouteEvents);
+            _dbContext.RouteEvents.RemoveRange(routeEvents);
             _dbContext.TrafficRoutes.Remove(route);
+
             _dbContext.SaveChanges();
         }
 
