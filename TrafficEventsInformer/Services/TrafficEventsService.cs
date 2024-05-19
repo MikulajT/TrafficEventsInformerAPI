@@ -5,7 +5,6 @@ using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Models.Configuration;
-using TrafficEventsInformer.Models.Fcm;
 using TrafficEventsInformer.Models.UsersRoute;
 
 namespace TrafficEventsInformer.Services

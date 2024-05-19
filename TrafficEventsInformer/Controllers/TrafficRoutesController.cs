@@ -25,8 +25,8 @@ namespace TrafficEventsInformer.Controllers
         [Route("api/trafficRoutes")]
         public async Task<IActionResult> AddRouteAsync([FromForm] AddRouteRequest requestData)
         {
-            await _trafficRouteService.AddRouteAsync(requestData);
-            return Ok();
+            int routeId = _trafficRouteService.AddRoute(requestData);
+            return Ok(routeId);
         }
 
         [HttpDelete]

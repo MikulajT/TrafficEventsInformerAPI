@@ -23,14 +23,16 @@ namespace TrafficEventsInformer.Services
             });
         }
 
-        public void AddRoute(string routeName, string routeCoordinates)
+        public int AddRoute(string routeName, string routeCoordinates)
         {
-            _dbContext.TrafficRoutes.Add(new TrafficRoute()
+            var route = new TrafficRoute()
             {
                 Name = routeName,
                 Coordinates = routeCoordinates
-            });
+            };
+            _dbContext.TrafficRoutes.Add(route);
             _dbContext.SaveChanges();
+            return route.Id;
         }
 
         public IEnumerable<TrafficRoute> GetUsersRoutes()

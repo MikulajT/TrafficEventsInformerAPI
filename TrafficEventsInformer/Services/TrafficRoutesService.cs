@@ -30,7 +30,7 @@ namespace TrafficEventsInformer.Services
             return result;
         }
 
-        public async Task AddRouteAsync(AddRouteRequest routeRequest)
+        public int AddRoute(AddRouteRequest routeRequest)
         {
             var serializer = new XmlSerializer(typeof(Gpx));
             using (var reader = new StreamReader(routeRequest.RouteFile.OpenReadStream()))
@@ -41,7 +41,7 @@ namespace TrafficEventsInformer.Services
                     serializer.Serialize(stringWriter, routeCoordinates);
                     string textCoordinates = stringWriter.ToString();
                     textCoordinates = SanitizeXml(textCoordinates);
-                    _trafficRouteRepository.AddRoute(routeRequest.RouteName, textCoordinates);
+                    return _trafficRouteRepository.AddRoute(routeRequest.RouteName, textCoordinates);
                 }
             }
         }
