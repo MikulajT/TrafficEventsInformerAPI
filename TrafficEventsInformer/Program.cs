@@ -76,6 +76,16 @@ namespace TrafficEventsInformer
             // Localization
             app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
+            // Create database in local environment - might come in handy
+            //if(app.Environment.IsDevelopment())
+            //{
+            //    using (var scope = app.Services.CreateScope())
+            //    {
+            //        var salesContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            //        salesContext.Database.EnsureCreated();
+            //    }
+            //}
+
             app.UseSwagger();
             app.UseSwaggerUI();
             //app.UseHttpsRedirection();
