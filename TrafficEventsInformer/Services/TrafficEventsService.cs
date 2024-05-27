@@ -128,7 +128,8 @@ namespace TrafficEventsInformer.Services
             }
         }
 
-        private async Task<List<SituationRecord>> GetActiveTrafficEvents()
+        // TODO: Make private
+        public async Task<List<SituationRecord>> GetActiveTrafficEvents()
         {
             using (var httpClient = new HttpClient())
             {

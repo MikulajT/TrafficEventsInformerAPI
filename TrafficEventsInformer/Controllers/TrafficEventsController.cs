@@ -60,5 +60,20 @@ namespace TrafficEventsInformer.Controllers
             _trafficEventsService.RenameRouteEvent(routeId, eventId, name);
             return Ok();
         }
+
+        [HttpPost]
+        [Route("api/trafficRoutes/sync-test")]
+        public async Task<IActionResult> SyncTestAsync()
+        {
+            try
+            {
+                await _trafficEventsService.GetActiveTrafficEvents();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

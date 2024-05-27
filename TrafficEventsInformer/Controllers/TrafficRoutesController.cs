@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Services;
 
@@ -44,6 +45,25 @@ namespace TrafficEventsInformer.Controllers
             requestData.RouteId = routeId;
             _trafficRouteService.UpdateRoute(requestData);
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("api/testdns")]
+        public IActionResult TestDnsResolution()
+        {
+            try
+            {
+                var hostInfo = Dns.GetHostEntry("mobilitydata.rsd.cz");
+                return Ok(new
+                {
+                    HostName = hostInfo.HostName,
+                    Addresses = hostInfo.AddressList.Select(ip => ip.ToString()).ToArray()
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "DNS resolution failed: " + ex.Message);
+            }
         }
     }
 }
