@@ -480,3 +480,4 @@ $RECYCLE.BIN/
 /TrafficEventsInformer/trafficeventsinformer-firebase-adminsdk-610ik-10035f39e0.json
 
 /TrafficEventsInformer/Migrations
+/TrafficEventsInformer/*.yaml
