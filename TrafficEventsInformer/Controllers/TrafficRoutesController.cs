@@ -46,24 +46,5 @@ namespace TrafficEventsInformer.Controllers
             _trafficRouteService.UpdateRoute(requestData);
             return Ok();
         }
-
-        [HttpGet]
-        [Route("api/testdns")]
-        public IActionResult TestDnsResolution()
-        {
-            try
-            {
-                var hostInfo = Dns.GetHostEntry("mobilitydata.rsd.cz");
-                return Ok(new
-                {
-                    HostName = hostInfo.HostName,
-                    Addresses = hostInfo.AddressList.Select(ip => ip.ToString()).ToArray()
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "DNS resolution failed: " + ex.Message);
-            }
-        }
     }
 }
