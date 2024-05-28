@@ -3,6 +3,7 @@
 namespace TrafficEventsInformer.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class HomeController : ControllerBase
     {
 
