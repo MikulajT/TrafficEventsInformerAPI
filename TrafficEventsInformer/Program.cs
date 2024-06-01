@@ -17,17 +17,8 @@ namespace TrafficEventsInformer
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-            // Load configuration
-            if (builder.Environment.IsDevelopment())
-            {
-                builder.Configuration.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
-            }
-            else
-            {
-                builder.Configuration.AddJsonFile("appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-            }
+            //builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            builder.Configuration.AddJsonFile("appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
             // Localization
             builder.Services.AddLocalization(options => options.ResourcesPath = "Resources/Services");
@@ -48,8 +39,8 @@ namespace TrafficEventsInformer
                 .WriteTo.File($"Logs/{Assembly.GetExecutingAssembly().GetName().Name}.log")
                 .WriteTo.Console()
                 .CreateLogger();
-                        builder.Logging.ClearProviders();
-                        builder.Logging.AddSerilog();
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog();
 
             FirebaseApp.Create(new AppOptions()
             {
@@ -64,6 +55,9 @@ namespace TrafficEventsInformer
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString")));
+
+            var tst = builder.Configuration.GetConnectionString("ConnectionString");
+
             builder.Services.AddTransient<IGeoService, GeoService>();
             builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
             builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
@@ -76,15 +70,16 @@ namespace TrafficEventsInformer
             // Localization
             app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
-            // Create database in local environment - might come in handy
-            //if(app.Environment.IsDevelopment())
-            //{
-            //    using (var scope = app.Services.CreateScope())
-            //    {
-            //        var salesContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            //        salesContext.Database.EnsureCreated();
-            //    }
-            //}
+            // Create database in docker container
+            if (app.Environment.EnvironmentName == "Docker")
+            {
+                using (var scope = app.Services.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    dbContext.Database.EnsureDeleted();
+                    dbContext.Database.EnsureCreated();
+                }
+            }
 
             app.UseSwagger();
             app.UseSwaggerUI();

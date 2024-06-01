@@ -2,6 +2,13 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 EXPOSE 80
 
+# Set environment variables:
+#	1. Production
+#	2. Docker
+#	3. Debug
+ENV ASPNETCORE_ENVIRONMENT Docker
+ENV DOTNET_ENVIRONMENT Docker
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["TrafficEventsInformer.csproj", "."]

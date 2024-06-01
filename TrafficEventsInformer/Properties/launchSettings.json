@@ -1,15 +1,5 @@
 {
   "profiles": {
-    "TrafficEventsInformer.Development": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "swagger",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7245;http://192.168.88.7:7246"
-    },
     "TrafficEventsInformer.Production": {
       "commandName": "Project",
       "launchBrowser": true,
@@ -19,16 +9,27 @@
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7245;http://192.168.88.7:7246"
+    },
+    "TrafficEventsInformer.Docker": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Docker"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7245;http://192.168.88.7:7246"
+    },
+    "TrafficEventsInformer.Debug": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Debug"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7245;http://192.168.88.7:7246"
     }
-    //,
-    //"IIS Express": {
-    //  "commandName": "IISExpress",
-    //  "launchBrowser": true,
-    //  "launchUrl": "swagger",
-    //  "environmentVariables": {
-    //    "ASPNETCORE_ENVIRONMENT": "Development"
-    //  }
-    //}
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
