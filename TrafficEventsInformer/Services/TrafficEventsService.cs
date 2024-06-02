@@ -32,19 +32,9 @@ namespace TrafficEventsInformer.Services
             _pushNotificationService = pushNotificationService;
         }
 
-        public IEnumerable<GetRouteEventNamesResponse> GetRouteEventNames(int routeId)
+        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
         {
-            List<GetRouteEventNamesResponse> result = new List<GetRouteEventNamesResponse>();
-            Dictionary<string, string> routeEvents = _trafficEventsRepository.GetRouteEventNames(routeId);
-            foreach (var routeEvent in routeEvents)
-            {
-                result.Add(new GetRouteEventNamesResponse()
-                {
-                    Id = routeEvent.Key,
-                    Name = routeEvent.Value
-                });
-            }
-            return result;
+            return _trafficEventsRepository.GetRouteEvents(routeId).ToList();
         }
 
         public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId)
@@ -74,11 +64,11 @@ namespace TrafficEventsInformer.Services
             InvalidateExpiredRouteEvents();
         }
 
-        public async Task<IEnumerable<GetRouteEventNamesResponse>> SyncRouteEvents(int routeId)
+        public async Task<GetRouteEventsResponse> SyncRouteEvents(int routeId)
         {
             await AddNewRouteEvents(routeId);
             InvalidateExpiredRouteEvents(routeId);
-            return GetRouteEventNames(routeId);
+            return GetRouteEvents(routeId);
         }
 
         private async Task AddNewRouteEvents()

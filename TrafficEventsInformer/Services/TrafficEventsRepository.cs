@@ -12,11 +12,18 @@ namespace TrafficEventsInformer.Services
         {
             _dbContext = dbContext;
         }
-        public Dictionary<string, string> GetRouteEventNames(int routeId)
+        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
         {
             return _dbContext.TrafficRouteRouteEvents
                 .Where(x => x.TrafficRouteId == routeId && !x.RouteEvent.Expired)
-                .ToDictionary(x => x.RouteEventId, x => x.Name);
+                .Select(x => new RouteEventDto()
+                {
+                    Id = x.RouteEventId,
+                    Name = x.Name,
+                    StartDate = x.RouteEvent.StartDate,
+                    EndDate = x.RouteEvent.EndDate,
+                    DaysRemaining = (x.RouteEvent.EndDate - DateTime.Now).Days
+                }).ToList();
         }
 
         public RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId)

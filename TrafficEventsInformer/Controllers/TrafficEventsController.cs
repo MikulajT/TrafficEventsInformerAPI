@@ -26,9 +26,9 @@ namespace TrafficEventsInformer.Controllers
 
         [HttpGet]
         [Route("api/trafficRoutes/{routeId:int}/events")]
-        public IActionResult GetRouteEventNames(int routeId)
+        public IActionResult GetRouteEvents(int routeId)
         {
-            return Ok(_trafficEventsService.GetRouteEventNames(routeId));
+            return Ok(_trafficEventsService.GetRouteEvents(routeId));
         }
 
         [HttpGet]
