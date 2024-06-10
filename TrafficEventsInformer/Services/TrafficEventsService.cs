@@ -64,7 +64,7 @@ namespace TrafficEventsInformer.Services
             InvalidateExpiredRouteEvents();
         }
 
-        public async Task<GetRouteEventsResponse> SyncRouteEvents(int routeId)
+        public async Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId)
         {
             await AddNewRouteEvents(routeId);
             InvalidateExpiredRouteEvents(routeId);

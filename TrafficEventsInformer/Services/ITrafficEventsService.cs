@@ -7,7 +7,7 @@ namespace TrafficEventsInformer.Services
         IEnumerable<RouteEventDto> GetRouteEvents(int routeId);
         GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId);
         Task SyncAllRouteEvents();
-        Task<GetRouteEventsResponse> SyncRouteEvents(int routeId);
+        Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId);
         void RenameRouteEvent(int routeId, string eventId, string name);
 
         // TODO: Remove

@@ -50,7 +50,7 @@ namespace TrafficEventsInformer.Controllers
         [Route("api/trafficRoutes/{routeId:int}/events/sync")]
         public async Task<IActionResult> SyncRouteEvents(int routeId)
         {
-            return Ok(await _trafficEventsService.SyncRouteEvents(routeId));
+            return Ok(await _trafficEventsService.SyncRouteEventsAsync(routeId));
         }
 
         [HttpPut]
