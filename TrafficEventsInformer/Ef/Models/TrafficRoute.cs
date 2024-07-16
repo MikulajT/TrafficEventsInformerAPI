@@ -6,5 +6,6 @@
         public string Name { get; set; }
         public string Coordinates { get; set; }
         public ICollection<TrafficRouteRouteEvent> TrafficRouteRouteEvents { get; set; }
+        public string UserId { get; set; }
     }
 }

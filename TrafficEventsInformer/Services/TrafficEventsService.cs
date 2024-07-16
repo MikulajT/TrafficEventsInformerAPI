@@ -32,16 +32,18 @@ namespace TrafficEventsInformer.Services
             _pushNotificationService = pushNotificationService;
         }
 
-        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
+        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId, string userId)
         {
-            return _trafficEventsRepository.GetRouteEvents(routeId).ToList();
+            return _trafficEventsRepository.GetRouteEvents(routeId, userId).ToList();
         }
 
-        public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId)
+        public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId, string userId)
         {
-            RouteEventDetailEntities eventDetailEntities = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId);
+            RouteEventDetailEntities eventDetailEntities = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId, userId);
             GetRouteEventDetailResponse routeEventDetail = new GetRouteEventDetailResponse();
-            if (eventDetailEntities != null)
+            if (eventDetailEntities?.TrafficRoute != null &&
+                eventDetailEntities?.RouteEvent != null &&
+                eventDetailEntities?.TrafficRouteRouteEvent != null)
             {
                 routeEventDetail.Id = eventDetailEntities.RouteEvent.Id;
                 routeEventDetail.Name = eventDetailEntities.TrafficRouteRouteEvent.Name;
@@ -58,26 +60,26 @@ namespace TrafficEventsInformer.Services
             return routeEventDetail;
         }
 
-        public async Task SyncAllRouteEvents()
+        public async Task SyncAllRouteEvents(string userId)
         {
-            await AddNewRouteEvents();
+            await AddNewRouteEvents(userId);
             InvalidateExpiredRouteEvents();
         }
 
-        public async Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId)
+        public async Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId, string userId)
         {
-            await AddNewRouteEvents(routeId);
+            await AddNewRouteEvents(routeId, userId);
             InvalidateExpiredRouteEvents(routeId);
-            return GetRouteEvents(routeId);
+            return GetRouteEvents(routeId, userId);
         }
 
-        private async Task AddNewRouteEvents()
+        private async Task AddNewRouteEvents(string userId)
         {
             List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
-            List<RouteWithCoordinates> routesWithCoordinates = GetUsersRoutesWithCoordinates().ToList();
+            List<RouteWithCoordinates> routesWithCoordinates = GetRoutesWithCoordinates(userId).ToList();
             foreach (var routeWithCoordinates in routesWithCoordinates)
             {
-                await AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
+                await AddRouteEvent(activeTrafficEvents, routeWithCoordinates, userId);
             }
         }
 
@@ -86,10 +88,10 @@ namespace TrafficEventsInformer.Services
             _trafficEventsRepository.InvalidateExpiredRouteEvents();
         }
 
-        public IEnumerable<RouteWithCoordinates> GetUsersRoutesWithCoordinates()
+        private IEnumerable<RouteWithCoordinates> GetRoutesWithCoordinates(string userId)
         {
             var usersRouteCoordinates = new List<RouteWithCoordinates>();
-            List<TrafficRoute> usersRoutes = _trafficRoutesRepository.GetUsersRoutes().ToList();
+            List<TrafficRoute> usersRoutes = _trafficRoutesRepository.GetRoutes(userId).ToList();
             XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
             foreach (var usersRoute in usersRoutes)
             {
@@ -102,11 +104,11 @@ namespace TrafficEventsInformer.Services
             return usersRouteCoordinates;
         }
 
-        private async Task AddNewRouteEvents(int routeId)
+        private async Task AddNewRouteEvents(int routeId, string userId)
         {
             List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
             RouteWithCoordinates routeWithCoordinates = GetUsersRouteWithCoordinates(routeId);
-            await AddRouteEvent(activeTrafficEvents, routeWithCoordinates);
+            await AddRouteEvent(activeTrafficEvents, routeWithCoordinates, userId);
         }
 
         private void InvalidateExpiredRouteEvents(int routeId)
@@ -152,7 +154,7 @@ namespace TrafficEventsInformer.Services
 
         public RouteWithCoordinates GetUsersRouteWithCoordinates(int routeId)
         {
-            TrafficRoute usersRoute = _trafficRoutesRepository.GetUsersRoute(routeId);
+            TrafficRoute usersRoute = _trafficRoutesRepository.GetRoute(routeId);
             XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
             using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
             {
@@ -161,14 +163,14 @@ namespace TrafficEventsInformer.Services
             }
         }
 
-        private async Task AddRouteEvent(List<SituationRecord> activeEvents, RouteWithCoordinates route)
+        private async Task AddRouteEvent(List<SituationRecord> activeEvents, RouteWithCoordinates route, string userId)
         {
             List<SituationRecord> routeEvents = GetEventsOnUsersRoute(route.RouteCoordinates, activeEvents).ToList();
             foreach (var routeEvent in routeEvents)
             {
                 if (!_trafficEventsRepository.RouteEventExists(routeEvent.id))
                 {
-                    TrafficRoute trafficRoute = _trafficRoutesRepository.GetUsersRoute(route.RouteId);
+                    TrafficRoute trafficRoute = _trafficRoutesRepository.GetRoute(route.RouteId);
                     RouteEvent newRouteEvent = new RouteEvent()
                     {
                         Id = routeEvent.id,
@@ -187,7 +189,8 @@ namespace TrafficEventsInformer.Services
                     {
                         TrafficRouteId = trafficRoute.Id,
                         RouteEventId = newRouteEvent.Id,
-                        Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0]
+                        Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0],
+                        UserId = userId
                     };
 
                     _trafficEventsRepository.AddRouteEvent(newRouteEvent, trafficRouteRouteEvent);
@@ -215,9 +218,9 @@ namespace TrafficEventsInformer.Services
             return result;
         }
 
-        public void RenameRouteEvent(int routeId, string eventId, string name)
+        public void RenameRouteEvent(int routeId, string eventId, string name, string userId)
         {
-            _trafficEventsRepository.RenameRouteEvent(routeId, eventId, name);
+            _trafficEventsRepository.RenameRouteEvent(routeId, eventId, name, userId);
         }
     }
 }

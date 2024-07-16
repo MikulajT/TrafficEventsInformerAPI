@@ -4,13 +4,10 @@ namespace TrafficEventsInformer.Services
 {
     public interface ITrafficEventsService
     {
-        IEnumerable<RouteEventDto> GetRouteEvents(int routeId);
-        GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId);
-        Task SyncAllRouteEvents();
-        Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId);
-        void RenameRouteEvent(int routeId, string eventId, string name);
-
-        // TODO: Remove
-        Task<List<SituationRecord>> GetActiveTrafficEvents();
+        IEnumerable<RouteEventDto> GetRouteEvents(int routeId, string userId);
+        GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId, string userId);
+        Task SyncAllRouteEvents(string userId);
+        Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId, string userId);
+        void RenameRouteEvent(int routeId, string eventId, string name, string userId);
     }
 }

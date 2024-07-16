@@ -1,6 +1,4 @@
-﻿using TrafficEventsInformer.Models.UsersRoute;
-
-namespace TrafficEventsInformer.Models
+﻿namespace TrafficEventsInformer.Models
 {
     public class AddRouteRequest
     {

@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using TrafficEventsInformer.Ef;
+﻿using TrafficEventsInformer.Ef;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
 
@@ -14,33 +13,36 @@ namespace TrafficEventsInformer.Services
             _dbContext = dbContext;
         }
 
-        public IEnumerable<TrafficRoute> GetTrafficRouteNames()
+        public IEnumerable<TrafficRoute> GetTrafficRouteNames(string userId)
         {
-            return _dbContext.TrafficRoutes.Select(x => new TrafficRoute()
+            return _dbContext.TrafficRoutes
+                .Where(x => x.UserId == userId)
+                .Select(x => new TrafficRoute()
             {
                 Id = x.Id,
                 Name = x.Name
             });
         }
 
-        public int AddRoute(string routeName, string routeCoordinates)
+        public int AddRoute(string routeName, string routeCoordinates, string userId)
         {
             var route = new TrafficRoute()
             {
                 Name = routeName,
-                Coordinates = routeCoordinates
+                Coordinates = routeCoordinates,
+                UserId = userId
             };
             _dbContext.TrafficRoutes.Add(route);
             _dbContext.SaveChanges();
             return route.Id;
         }
 
-        public IEnumerable<TrafficRoute> GetUsersRoutes()
+        public IEnumerable<TrafficRoute> GetRoutes(string userId)
         {
-            return _dbContext.TrafficRoutes;
+            return _dbContext.TrafficRoutes.Where(x => x.UserId == userId);
         }
 
-        public TrafficRoute GetUsersRoute(int routeId)
+        public TrafficRoute GetRoute(int routeId)
         {
             return _dbContext.TrafficRoutes.Single(x => x.Id == routeId);
         }

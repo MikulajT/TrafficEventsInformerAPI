@@ -25,55 +25,40 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpGet]
-        [Route("api/trafficRoutes/{routeId:int}/events")]
-        public IActionResult GetRouteEvents(int routeId)
+        [Route("/api/users/{userId}/trafficRoutes/{routeId:int}/events")]
+        public IActionResult GetRouteEvents(string userId, int routeId)
         {
-            return Ok(_trafficEventsService.GetRouteEvents(routeId));
+            return Ok(_trafficEventsService.GetRouteEvents(routeId, userId));
         }
 
         [HttpGet]
-        [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
-        public IActionResult GetRouteEventDetail(int routeId, string eventId)
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
+        public IActionResult GetRouteEventDetail(string userId, int routeId, string eventId)
         {
-            return Ok(_trafficEventsService.GetRouteEventDetail(routeId, eventId));
+            return Ok(_trafficEventsService.GetRouteEventDetail(routeId, eventId, userId));
         }
 
         [HttpPost]
-        [Route("api/trafficRoutes/events/sync")]
-        public async Task<IActionResult> SyncAllRouteEvents()
+        [Route("api/users/{userId}/trafficRoutes/events/sync")]
+        public async Task<IActionResult> SyncAllRouteEvents(string userId)
         {
-            await _trafficEventsService.SyncAllRouteEvents();
+            await _trafficEventsService.SyncAllRouteEvents(userId);
             return Ok();
         }
 
         [HttpPost]
-        [Route("api/trafficRoutes/{routeId:int}/events/sync")]
-        public async Task<IActionResult> SyncRouteEvents(int routeId)
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/sync")]
+        public async Task<IActionResult> SyncRouteEvents(string userId, int routeId)
         {
-            return Ok(await _trafficEventsService.SyncRouteEventsAsync(routeId));
+            return Ok(await _trafficEventsService.SyncRouteEventsAsync(routeId, userId));
         }
 
         [HttpPut]
-        [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
-        public IActionResult RenameRouteEvent(int routeId, string eventId, [FromBody] string name)
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
+        public IActionResult RenameRouteEvent(string userId, int routeId, string eventId, [FromBody] string name)
         {
-            _trafficEventsService.RenameRouteEvent(routeId, eventId, name);
+            _trafficEventsService.RenameRouteEvent(routeId, eventId, name, userId);
             return Ok();
-        }
-
-        [HttpPost]
-        [Route("api/trafficRoutes/sync-test")]
-        public async Task<IActionResult> SyncTestAsync()
-        {
-            try
-            {
-                await _trafficEventsService.GetActiveTrafficEvents();
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
         }
     }
 }

@@ -5,10 +5,10 @@ namespace TrafficEventsInformer.Services
 {
     public interface ITrafficRoutesRepository
     {
-        IEnumerable<TrafficRoute> GetTrafficRouteNames();
-        int AddRoute(string routeName, string routeCoordinates);
-        IEnumerable<TrafficRoute> GetUsersRoutes();
-        TrafficRoute GetUsersRoute(int routeId);
+        IEnumerable<TrafficRoute> GetTrafficRouteNames(string userId);
+        int AddRoute(string routeName, string routeCoordinates, string userId);
+        IEnumerable<TrafficRoute> GetRoutes(string userId);
+        TrafficRoute GetRoute(int routeId);
         void DeleteRoute(int routeId);
         void UpdateRoute(UpdateRouteRequest requestData);
     }

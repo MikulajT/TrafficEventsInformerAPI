@@ -12,10 +12,10 @@ namespace TrafficEventsInformer.Services
         {
             _dbContext = dbContext;
         }
-        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
+        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId, string userId)
         {
             return _dbContext.TrafficRouteRouteEvents
-                .Where(x => x.TrafficRouteId == routeId && !x.RouteEvent.Expired)
+                .Where(x => x.TrafficRouteId == routeId && !x.RouteEvent.Expired && x.UserId == userId)
                 .Select(x => new RouteEventDto()
                 {
                     Id = x.RouteEventId,
@@ -27,13 +27,15 @@ namespace TrafficEventsInformer.Services
                 }).ToList();
         }
 
-        public RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId)
+        public RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId, string userId)
         {
             return new RouteEventDetailEntities()
             {
                 RouteEvent = _dbContext.RouteEvents.SingleOrDefault(x => x.Id == eventId),
-                TrafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId),
-                TrafficRouteRouteEvent = _dbContext.TrafficRouteRouteEvents.SingleOrDefault(x => x.TrafficRouteId == routeId && x.RouteEventId == eventId)
+                TrafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId && x.UserId == userId),
+                TrafficRouteRouteEvent = _dbContext.TrafficRouteRouteEvents.SingleOrDefault(x => x.TrafficRouteId == routeId
+                    && x.RouteEventId == eventId
+                    && x.UserId == userId)
             };
         }
 
@@ -44,7 +46,7 @@ namespace TrafficEventsInformer.Services
             _dbContext.SaveChanges();
         }
 
-        public bool RouteEventExists( string eventId)
+        public bool RouteEventExists(string eventId)
         {
             return _dbContext.RouteEvents.Any(x => x.Id == eventId);
         }
@@ -84,9 +86,11 @@ namespace TrafficEventsInformer.Services
             });
         }
 
-        public void RenameRouteEvent(int routeId, string eventId, string name)
+        public void RenameRouteEvent(int routeId, string eventId, string name, string userId)
         {
-            TrafficRouteRouteEvent routeEvent = _dbContext.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId && x.RouteEventId == eventId);
+            TrafficRouteRouteEvent routeEvent = _dbContext.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId
+                && x.RouteEventId == eventId
+                && x.UserId == userId);
             routeEvent.Name = name;
             _dbContext.SaveChanges();
         }

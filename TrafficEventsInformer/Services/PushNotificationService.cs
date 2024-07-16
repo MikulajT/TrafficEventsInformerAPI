@@ -13,7 +13,7 @@ namespace TrafficEventsInformer.Services
             {
                 Title = $"Nová dopravní událost!",
                 Body = $"{eventStart} začala nová dopravní událost na {(multipleRoutes ? "trasách" : "trase")} {formattedRouteNames}",
-                DeviceToken = "dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS",
+                DeviceToken = "cZx4iNgXRmWaQa8A1ZCMO3:APA91bHaO04snK7ou516Tcsh2M-a_OO_1wsK7QEc3sx5o0SNEo1SPKshDbagBSiLvF1jlZImF8VvOF-gDMF2uoDLEzSOwhuJ7fjWmMSmr0IY6_xjwNRkjH627FDlNbVvcHo3j-79XZEm",//"dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS",
                 Data = new Dictionary<string, string>()
                 {
                     {"eventId", eventId}

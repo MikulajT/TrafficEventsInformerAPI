@@ -15,10 +15,10 @@ namespace TrafficEventsInformer.Services
             _trafficRouteRepository = trafficRouteRepository;
         }
 
-        public IEnumerable<GetTrafficRouteNamesResponse> GetTrafficRouteNames()
+        public IEnumerable<GetTrafficRouteNamesResponse> GetTrafficRouteNames(string userId)
         {
             List<GetTrafficRouteNamesResponse> result = new List<GetTrafficRouteNamesResponse>();
-            List<TrafficRoute> trafficRoutes = _trafficRouteRepository.GetTrafficRouteNames().ToList();
+            List<TrafficRoute> trafficRoutes = _trafficRouteRepository.GetTrafficRouteNames(userId).ToList();
             foreach (var trafficRoute in trafficRoutes)
             {
                 result.Add(new GetTrafficRouteNamesResponse()
@@ -30,7 +30,7 @@ namespace TrafficEventsInformer.Services
             return result;
         }
 
-        public int AddRoute(AddRouteRequest routeRequest)
+        public int AddRoute(AddRouteRequest routeRequest, string userId)
         {
             var serializer = new XmlSerializer(typeof(Gpx));
             using (var reader = new StreamReader(routeRequest.RouteFile.OpenReadStream()))
@@ -41,7 +41,7 @@ namespace TrafficEventsInformer.Services
                     serializer.Serialize(stringWriter, routeCoordinates);
                     string textCoordinates = stringWriter.ToString();
                     textCoordinates = SanitizeXml(textCoordinates);
-                    return _trafficRouteRepository.AddRoute(routeRequest.RouteName, textCoordinates);
+                    return _trafficRouteRepository.AddRoute(routeRequest.RouteName, textCoordinates, userId);
                 }
             }
         }

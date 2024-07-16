@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Net;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Services;
 
@@ -16,17 +15,17 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpGet]
-        [Route("api/trafficRoutes")]
-        public IActionResult GetTrafficRoutes()
+        [Route("api/users/{userId}/trafficRoutes")]
+        public IActionResult GetTrafficRoutes(string userId)
         {
-            return Ok(_trafficRouteService.GetTrafficRouteNames());
+            return Ok(_trafficRouteService.GetTrafficRouteNames(userId));
         }
 
         [HttpPost]
-        [Route("api/trafficRoutes")]
-        public async Task<IActionResult> AddRouteAsync([FromForm] AddRouteRequest requestData)
+        [Route("api/users/{userId}/trafficRoutes")]
+        public async Task<IActionResult> AddRouteAsync([FromRoute] string userId, [FromForm] AddRouteRequest requestData)
         {
-            int routeId = _trafficRouteService.AddRoute(requestData);
+            int routeId = _trafficRouteService.AddRoute(requestData, userId);
             return Ok(routeId);
         }
 
