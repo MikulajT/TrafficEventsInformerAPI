@@ -63,6 +63,8 @@ namespace TrafficEventsInformer
             builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
             builder.Services.AddTransient<ITrafficEventsRepository, TrafficEventsRepository>();
             builder.Services.AddTransient<ITrafficEventsService, TrafficEventsService>();
+            builder.Services.AddTransient<IUsersRepository, UsersRepository>();
+            builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
 
             var app = builder.Build();

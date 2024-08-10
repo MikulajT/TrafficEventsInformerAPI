@@ -1,6 +1,6 @@
 ﻿namespace TrafficEventsInformer.Models
 {
-    public enum EventTypes
+    public enum EventType
     {
         AbnormalTraffic = 1,
         Accident,
@@ -38,5 +38,12 @@
         VehicleObstruction,
         WeatherRelatedRoadConditions,
         WinterDrivingManagement
+    }
+
+    public enum ServiceResult
+    {
+        Success,
+        ResourceExists
+        // Error result is not needed since it is handled by global exception error handler
     }
 }

@@ -47,7 +47,7 @@ namespace TrafficEventsInformer.Services
             {
                 routeEventDetail.Id = eventDetailEntities.RouteEvent.Id;
                 routeEventDetail.Name = eventDetailEntities.TrafficRouteRouteEvent.Name;
-                routeEventDetail.Type = _localizer[((EventTypes)eventDetailEntities.RouteEvent.Type).ToString()];
+                routeEventDetail.Type = _localizer[((EventType)eventDetailEntities.RouteEvent.Type).ToString()];
                 routeEventDetail.Description = eventDetailEntities.RouteEvent.Description;
                 routeEventDetail.StartDate = eventDetailEntities.RouteEvent.StartDate;
                 routeEventDetail.EndDate = eventDetailEntities.RouteEvent.EndDate;
@@ -174,7 +174,7 @@ namespace TrafficEventsInformer.Services
                     RouteEvent newRouteEvent = new RouteEvent()
                     {
                         Id = routeEvent.id,
-                        Type = (int)Enum.Parse<EventTypes>(routeEvent.GetType().Name),
+                        Type = (int)Enum.Parse<EventType>(routeEvent.GetType().Name),
                         Description = routeEvent.generalPublicComment[0].comment.values[0].Value,
                         StartDate = routeEvent.validity.validityTimeSpecification.overallStartTime,
                         EndDate = routeEvent.validity.validityTimeSpecification.overallEndTime,

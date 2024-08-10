@@ -13,6 +13,7 @@ namespace TrafficEventsInformer.Ef
         public DbSet<TrafficRoute> TrafficRoutes { get; set; }
         public DbSet<RouteEvent> RouteEvents { get; set; }
         public DbSet<TrafficRouteRouteEvent> TrafficRouteRouteEvents { get; set; }
+        public DbSet<User> Users { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,6 +41,10 @@ namespace TrafficEventsInformer.Ef
                     .WithMany(e => e.TrafficRouteRouteEvents)
                     .HasForeignKey(e => e.RouteEventId);
                 entity.Property(e => e.Name).HasMaxLength(200);
+            });
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => new { e.Id, e.FcmDeviceToken });
             });
             //modelBuilder.Ignore<TrafficRoute>();
             //modelBuilder.Ignore<RouteEvent>();
