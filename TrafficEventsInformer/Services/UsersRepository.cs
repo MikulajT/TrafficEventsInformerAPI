@@ -27,5 +27,10 @@ namespace TrafficEventsInformer.Services
         {
             return _dbContext.Users.Any(x => x.Id == userId && x.FcmDeviceToken == token);
         }
+
+        public IEnumerable<string> GetFcmDeviceTokens(string userId)
+        {
+            return _dbContext.Users.Where(x => x.Id == userId).Select(x => x.FcmDeviceToken);
+        }
     }
 }

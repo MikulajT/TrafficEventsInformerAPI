@@ -5,36 +5,57 @@ namespace TrafficEventsInformer.Services
 {
     public class PushNotificationService : IPushNotificationService
     {
+        private readonly IUsersRepository _usersRepository;
+
+        public PushNotificationService(IUsersRepository usersRepository)
+        {
+            _usersRepository = usersRepository;
+        }
+
         public async Task SendEventStartNotificationAsync(DateTime eventStart, string[] routeNames, string eventId)
         {
             bool multipleRoutes = routeNames.Length > 1;
             string formattedRouteNames = string.Join(", ", routeNames);
-            SendPushNotificationAsync(new PushNotificationDto()
+
+            // TODO: Send notifications to all users on whose route the given traffic event is located
+            string[] fcmDeviceTokes = _usersRepository.GetFcmDeviceTokens("106729405684925826711").ToArray();
+
+            foreach (string fcmDeviceToken in fcmDeviceTokes)
             {
-                Title = $"Nová dopravní událost!",
-                Body = $"{eventStart} začala nová dopravní událost na {(multipleRoutes ? "trasách" : "trase")} {formattedRouteNames}",
-                DeviceToken = "cZx4iNgXRmWaQa8A1ZCMO3:APA91bHaO04snK7ou516Tcsh2M-a_OO_1wsK7QEc3sx5o0SNEo1SPKshDbagBSiLvF1jlZImF8VvOF-gDMF2uoDLEzSOwhuJ7fjWmMSmr0IY6_xjwNRkjH627FDlNbVvcHo3j-79XZEm",//"dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS",
-                Data = new Dictionary<string, string>()
+                _ = SendPushNotificationAsync(new PushNotificationDto()
                 {
-                    {"eventId", eventId}
-                }
-            });
+                    Title = $"Nová dopravní událost!",
+                    Body = $"{eventStart} začala nová dopravní událost na {(multipleRoutes ? "trasách" : "trase")} {formattedRouteNames}",
+                    DeviceToken = fcmDeviceToken,//"dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS",
+                    Data = new Dictionary<string, string>()
+                    {
+                        {"eventId", eventId}
+                    }
+                });
+            }
         }
 
         public async Task SendEventEndNotificationAsync(DateTime eventEnd, string[] routeNames, string eventId)
         {
             bool multipleRoutes = routeNames.Length > 1;
             string formattedRouteNames = string.Join(", ", routeNames);
-            SendPushNotificationAsync(new PushNotificationDto()
+
+            // TODO: Send notifications to all users on whose route the given traffic event is located
+            string[] fcmDeviceTokes = _usersRepository.GetFcmDeviceTokens("106729405684925826711").ToArray();
+
+            foreach (string fcmDeviceToken in fcmDeviceTokes)
             {
-                Title = $"Konec dopravní události!",
-                Body = $"{eventEnd} skončila dopravní událost na {(multipleRoutes ? "trasách" : "trase")} {formattedRouteNames}",
-                DeviceToken = "dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS",
-                Data = new Dictionary<string, string>()
+                _ = SendPushNotificationAsync(new PushNotificationDto()
                 {
-                    {"eventId", eventId}
-                }
-            });
+                    Title = $"Konec dopravní události!",
+                    Body = $"{eventEnd} skončila dopravní událost na {(multipleRoutes ? "trasách" : "trase")} {formattedRouteNames}",
+                    DeviceToken = fcmDeviceToken,
+                    Data = new Dictionary<string, string>()
+                    {
+                        {"eventId", eventId}
+                    }
+                });
+            }
         }
 
         private async Task<bool> SendPushNotificationAsync(PushNotificationDto pushNotificationDto)
