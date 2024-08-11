@@ -2,7 +2,7 @@
 {
     public interface IPushNotificationService
     {
-        Task SendEventStartNotificationAsync(DateTime eventStart, string[] routeNames, string eventId);
-        Task SendEventEndNotificationAsync(DateTime eventEnd, string[] routeNames, string eventId);
+        Task SendEventStartNotificationAsync(DateTime eventStart, string[] routeNames, int routeId, string eventId, string userId);
+        Task SendEventEndNotificationAsync(DateTime eventEnd, string[] routeNames, int routeId, string eventId, string userId);
     }
 }

@@ -116,7 +116,7 @@ namespace TrafficEventsInformer.Services
             List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
             foreach (var expiredRouteEvent in expiredRouteEvents)
             {
-                _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, expiredRouteEvent.Id);
+                _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.Id, expiredRouteEvent.UserId);
             }
         }
 
@@ -194,7 +194,7 @@ namespace TrafficEventsInformer.Services
                     };
 
                     _trafficEventsRepository.AddRouteEvent(newRouteEvent, trafficRouteRouteEvent);
-                    _pushNotificationService.SendEventStartNotificationAsync(newRouteEvent.StartDate, new string[] { trafficRoute.Name }, newRouteEvent.Id);
+                    _pushNotificationService.SendEventStartNotificationAsync(newRouteEvent.StartDate, new string[] { trafficRoute.Name }, trafficRoute.Id, newRouteEvent.Id, userId);
                 }
             }
         }

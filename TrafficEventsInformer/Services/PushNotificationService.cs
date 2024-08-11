@@ -12,13 +12,11 @@ namespace TrafficEventsInformer.Services
             _usersRepository = usersRepository;
         }
 
-        public async Task SendEventStartNotificationAsync(DateTime eventStart, string[] routeNames, string eventId)
+        public async Task SendEventStartNotificationAsync(DateTime eventStart, string[] routeNames, int routeId, string eventId, string userId)
         {
             bool multipleRoutes = routeNames.Length > 1;
             string formattedRouteNames = string.Join(", ", routeNames);
-
-            // TODO: Send notifications to all users on whose route the given traffic event is located
-            string[] fcmDeviceTokes = _usersRepository.GetFcmDeviceTokens("106729405684925826711").ToArray();
+            string[] fcmDeviceTokes = _usersRepository.GetFcmDeviceTokens(userId).ToArray();
 
             foreach (string fcmDeviceToken in fcmDeviceTokes)
             {
@@ -29,19 +27,18 @@ namespace TrafficEventsInformer.Services
                     DeviceToken = fcmDeviceToken,//"dJlp6DutRH2dsDqXZWrvhA:APA91bEl3HxtAhrOE9bCpqCTMMUW78Mr4yLZVmE7ilWm8B6dBJsY6MywTzF5HsaEH-EwnHR6KDwreZ1AcVxc0yfAaR0f_J_vwwdHoDPOXZkP0ehzHOa3ThoD09QcEpAy2U3rfxzrhhgS",
                     Data = new Dictionary<string, string>()
                     {
-                        {"eventId", eventId}
+                        { "routeId", routeId.ToString() },
+                        { "eventId", eventId }
                     }
                 });
             }
         }
 
-        public async Task SendEventEndNotificationAsync(DateTime eventEnd, string[] routeNames, string eventId)
+        public async Task SendEventEndNotificationAsync(DateTime eventEnd, string[] routeNames, int routeId, string eventId, string userId)
         {
             bool multipleRoutes = routeNames.Length > 1;
             string formattedRouteNames = string.Join(", ", routeNames);
-
-            // TODO: Send notifications to all users on whose route the given traffic event is located
-            string[] fcmDeviceTokes = _usersRepository.GetFcmDeviceTokens("106729405684925826711").ToArray();
+            string[] fcmDeviceTokes = _usersRepository.GetFcmDeviceTokens(userId).ToArray();
 
             foreach (string fcmDeviceToken in fcmDeviceTokes)
             {
@@ -52,7 +49,8 @@ namespace TrafficEventsInformer.Services
                     DeviceToken = fcmDeviceToken,
                     Data = new Dictionary<string, string>()
                     {
-                        {"eventId", eventId}
+                        { "routeId", routeId.ToString() },
+                        { "eventId", eventId }
                     }
                 });
             }
