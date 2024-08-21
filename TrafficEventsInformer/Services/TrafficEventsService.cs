@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Localization;
+using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Serialization;
@@ -128,12 +129,25 @@ namespace TrafficEventsInformer.Services
                 CommonTI commonTICredentials = _config.GetSection("CommonTI").Get<CommonTI>();
                 var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{commonTICredentials.Username}:{commonTICredentials.Password}"));
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
+                httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip");
                 var apiUrl = "https://mobilitydata.rsd.cz/Resources/Dynamic/CommonTIDatex/";
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
                 var situations = new List<SituationRecord>();
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
+                    string content = "";
+
+                    using (var responseStream = await response.Content.ReadAsStreamAsync())
+                    {
+                        if (response.Content.Headers.ContentEncoding.Contains("gzip"))
+                        {
+                            using (var decompressedStream = new GZipStream(responseStream, CompressionMode.Decompress))
+                            using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
+                            {
+                                content = await reader.ReadToEndAsync();
+                            }
+                        }
+                    }
 
                     // RSD data temporary fix (The specified type is abstract: name='Roadworks')
                     content = content.Replace("xsi:type=\"Roadworks\"", "xsi:type=\"ConstructionWorks\"");
