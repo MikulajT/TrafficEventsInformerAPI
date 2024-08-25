@@ -6,5 +6,6 @@ namespace TrafficEventsInformer.Services
     {
         ServiceResult AddFcmDeviceToken(string userId, string token);
         bool FcmDeviceTokenExists(string userId, string token);
+        IEnumerable<string> GetUserIds();
     }
 }

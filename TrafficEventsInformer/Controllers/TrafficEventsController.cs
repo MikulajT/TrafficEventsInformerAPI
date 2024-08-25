@@ -42,7 +42,7 @@ namespace TrafficEventsInformer.Controllers
         [Route("api/users/{userId}/trafficRoutes/events/sync")]
         public async Task<IActionResult> SyncAllRouteEvents(string userId)
         {
-            await _trafficEventsService.SyncAllRouteEvents(userId);
+            await _trafficEventsService.SyncRouteEventsAsync(userId);
             return Ok();
         }
 

@@ -28,5 +28,10 @@ namespace TrafficEventsInformer.Services
         {
             return _usersRepository.FcmDeviceTokenExists(userId, token);
         }
+
+        public IEnumerable<string> GetUserIds()
+        {
+            return _usersRepository.GetUserIds();
+        }
     }
 }

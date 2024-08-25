@@ -67,6 +67,8 @@ namespace TrafficEventsInformer
             builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
 
+            builder.Services.AddHostedService<TrafficEventsSyncService>();
+
             var app = builder.Build();
 
             // Localization

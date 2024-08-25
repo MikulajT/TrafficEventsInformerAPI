@@ -18,12 +18,14 @@ namespace TrafficEventsInformer.Services
         private readonly IConfiguration _config;
         private readonly IStringLocalizer<TrafficEventsService> _localizer;
         private readonly IPushNotificationService _pushNotificationService;
+        private readonly IUsersService _usersService;
         public TrafficEventsService(ITrafficRoutesRepository trafficRoutesRepository,
             ITrafficEventsRepository trafficEventsRepository,
             IGeoService geoService,
             IConfiguration config,
             IStringLocalizer<TrafficEventsService> localizer,
-            IPushNotificationService pushNotificationService)
+            IPushNotificationService pushNotificationService,
+            IUsersService usersService)
         {
             _trafficRoutesRepository = trafficRoutesRepository;
             _trafficEventsRepository = trafficEventsRepository;
@@ -31,6 +33,7 @@ namespace TrafficEventsInformer.Services
             _config = config;
             _localizer = localizer;
             _pushNotificationService = pushNotificationService;
+            _usersService = usersService;
         }
 
         public IEnumerable<RouteEventDto> GetRouteEvents(int routeId, string userId)
@@ -61,26 +64,39 @@ namespace TrafficEventsInformer.Services
             return routeEventDetail;
         }
 
-        public async Task SyncAllRouteEvents(string userId)
+        public async Task SyncRouteEventsAsync()
         {
-            await AddNewRouteEvents(userId);
+            List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
+
+            foreach (string userId in _usersService.GetUserIds())
+            {
+                await AddNewRouteEvents(userId, activeTrafficEvents);
+            }
+
+            InvalidateExpiredRouteEvents();
+        }
+
+        public async Task SyncRouteEventsAsync(string userId)
+        {
+            List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
+            await AddNewRouteEvents(userId, activeTrafficEvents);
             InvalidateExpiredRouteEvents();
         }
 
         public async Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId, string userId)
         {
-            await AddNewRouteEvents(routeId, userId);
+            List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
+            await AddNewRouteEvents(routeId, userId, activeTrafficEvents);
             InvalidateExpiredRouteEvents(routeId);
             return GetRouteEvents(routeId, userId);
         }
 
-        private async Task AddNewRouteEvents(string userId)
+        private async Task AddNewRouteEvents(string userId, List<SituationRecord> rsdTrafficEvents)
         {
-            List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
             List<RouteWithCoordinates> routesWithCoordinates = GetRoutesWithCoordinates(userId).ToList();
             foreach (var routeWithCoordinates in routesWithCoordinates)
             {
-                await AddRouteEvent(activeTrafficEvents, routeWithCoordinates, userId);
+                await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
             }
         }
 
@@ -105,11 +121,10 @@ namespace TrafficEventsInformer.Services
             return usersRouteCoordinates;
         }
 
-        private async Task AddNewRouteEvents(int routeId, string userId)
+        private async Task AddNewRouteEvents(int routeId, string userId, List<SituationRecord> rsdTrafficEvents)
         {
-            List<SituationRecord> activeTrafficEvents = await GetActiveTrafficEvents();
             RouteWithCoordinates routeWithCoordinates = GetUsersRouteWithCoordinates(routeId);
-            await AddRouteEvent(activeTrafficEvents, routeWithCoordinates, userId);
+            await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
         }
 
         private void InvalidateExpiredRouteEvents(int routeId)
@@ -121,8 +136,7 @@ namespace TrafficEventsInformer.Services
             }
         }
 
-        // TODO: Make private
-        public async Task<List<SituationRecord>> GetActiveTrafficEvents()
+        private async Task<List<SituationRecord>> GetRsdTrafficEvents()
         {
             using (var httpClient = new HttpClient())
             {
