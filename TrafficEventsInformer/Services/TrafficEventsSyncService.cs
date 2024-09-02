@@ -23,7 +23,7 @@ namespace TrafficEventsInformer.Services
                     _trafficEventsService.SyncRouteEventsAsync();
                 }
 
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
         }
     }
