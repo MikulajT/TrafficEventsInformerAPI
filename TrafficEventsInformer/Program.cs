@@ -54,9 +54,7 @@ namespace TrafficEventsInformer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString")));
-
-            var tst = builder.Configuration.GetConnectionString("ConnectionString");
+                options.UseSqlite(builder.Configuration.GetConnectionString("ConnectionString")));
 
             builder.Services.AddTransient<IGeoService, GeoService>();
             builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();

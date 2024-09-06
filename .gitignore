@@ -481,3 +481,6 @@ $RECYCLE.BIN/
 
 /TrafficEventsInformer/Migrations
 /TrafficEventsInformer/*.yaml
+
+*.db
+*.db-*
