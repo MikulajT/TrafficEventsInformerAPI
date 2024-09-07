@@ -89,6 +89,9 @@ namespace TrafficEventsInformer
             app.UseAuthorization();
             app.MapControllers();
 
+            // Needed for GCR
+            app.Urls.Add("http://0.0.0.0:8080");
+
             app.Run();
         }
     }
