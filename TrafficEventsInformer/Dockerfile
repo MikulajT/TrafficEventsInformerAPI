@@ -1,13 +1,13 @@
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
-EXPOSE 80
+EXPOSE 8080
 
 # Set environment variables:
 #	1. Production
 #	2. Docker
 #	3. Debug
-ENV ASPNETCORE_ENVIRONMENT Docker
-ENV DOTNET_ENVIRONMENT Docker
+ENV ASPNETCORE_ENVIRONMENT Production
+ENV DOTNET_ENVIRONMENT Production
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
@@ -16,12 +16,12 @@ RUN dotnet restore "./TrafficEventsInformer.csproj"
 COPY . .
 WORKDIR "/src/."
 
-# Switch between Release/Debug
-RUN dotnet build "TrafficEventsInformer.csproj" -c Debug -o /app/build
+# Switch between Release/Docker/Debug
+RUN dotnet build "TrafficEventsInformer.csproj" -c Production -o /app/build
 
 # Switch between Release/Debug
 FROM build AS publish
-RUN dotnet publish "TrafficEventsInformer.csproj" -c Debug -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "TrafficEventsInformer.csproj" -c Production -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
