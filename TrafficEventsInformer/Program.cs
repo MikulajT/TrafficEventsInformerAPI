@@ -16,6 +16,7 @@ namespace TrafficEventsInformer
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            string env = builder.Environment.EnvironmentName;
 
             //builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
             builder.Configuration.AddJsonFile("appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
@@ -55,7 +56,6 @@ namespace TrafficEventsInformer
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
-                string env = builder.Environment.EnvironmentName;
                 if (env == "Development" || env == "Docker")
                 {
                     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnectionString"));
@@ -83,6 +83,11 @@ namespace TrafficEventsInformer
 #endif
 
             var app = builder.Build();
+
+            if (env == "Production")
+            {
+                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+            }
 
             // Localization
             app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
