@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 
 # Set environment variables:
@@ -9,7 +9,7 @@ ENV ASPNETCORE_ENVIRONMENT Production
 ENV DOTNET_ENVIRONMENT Production
 ENV PORT 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["TrafficEventsInformer.csproj", "."]
 RUN dotnet restore "./TrafficEventsInformer.csproj"
