@@ -54,8 +54,17 @@ namespace TrafficEventsInformer
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(builder.Configuration.GetConnectionString("ConnectionString")));
-
+            {
+                string env = builder.Environment.EnvironmentName;
+                if (env == "Development" || env == "Docker")
+                {
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnectionString"));
+                }
+                else
+                {
+                    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnectionString"));
+                }
+            });
             builder.Services.AddTransient<IGeoService, GeoService>();
             builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
             builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
@@ -79,12 +88,12 @@ namespace TrafficEventsInformer
             app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
             // Always init database
-            using (var scope = app.Services.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                dbContext.Database.EnsureDeleted();
-                dbContext.Database.EnsureCreated();
-            }
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            //    dbContext.Database.EnsureDeleted();
+            //    dbContext.Database.EnsureCreated();
+            //}
 
             app.UseSwagger();
             app.UseSwaggerUI();
