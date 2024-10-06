@@ -18,7 +18,6 @@ namespace TrafficEventsInformer
             var builder = WebApplication.CreateBuilder(args);
             string env = builder.Environment.EnvironmentName;
 
-            //builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
             builder.Configuration.AddJsonFile("appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
             // Localization
@@ -56,14 +55,8 @@ namespace TrafficEventsInformer
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
-                if (env == "Development" || env == "Docker")
-                {
-                    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnectionString"));
-                }
-                else
-                {
-                    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnectionString"));
-                }
+                options.UseNpgsql(builder.Configuration.GetConnectionString("ConnectionString"));
+                //options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString"));
             });
             builder.Services.AddTransient<IGeoService, GeoService>();
             builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
@@ -84,10 +77,8 @@ namespace TrafficEventsInformer
 
             var app = builder.Build();
 
-            if (env == "Production")
-            {
-                AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-            }
+            // Needed for Postgre
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
             // Localization
             app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
