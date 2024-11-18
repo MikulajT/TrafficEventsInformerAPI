@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Localization;
 using System.IO.Compression;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Authentication;
 using System.Text;
 using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
@@ -36,14 +38,14 @@ namespace TrafficEventsInformer.Services
             _usersService = usersService;
         }
 
-        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId, string userId)
+        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
         {
-            return _trafficEventsRepository.GetRouteEvents(routeId, userId).ToList();
+            return _trafficEventsRepository.GetRouteEvents(routeId).ToList();
         }
 
-        public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId, string userId)
+        public GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId)
         {
-            RouteEventDetailEntities eventDetailEntities = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId, userId);
+            RouteEventDetailEntities eventDetailEntities = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId);
             GetRouteEventDetailResponse routeEventDetail = new GetRouteEventDetailResponse();
             if (eventDetailEntities?.TrafficRoute != null &&
                 eventDetailEntities?.RouteEvent != null &&
@@ -68,9 +70,9 @@ namespace TrafficEventsInformer.Services
         {
             List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
 
-            foreach (string userId in _usersService.GetUserIds())
+            foreach (User user in _usersService.GetUsers())
             {
-                await AddNewRouteEvents(userId, activeTrafficEvents);
+                await AddNewRouteEvents(user.Id, activeTrafficEvents);
             }
 
             InvalidateExpiredRouteEvents();
@@ -88,7 +90,7 @@ namespace TrafficEventsInformer.Services
             List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
             await AddNewRouteEvents(routeId, userId, activeTrafficEvents);
             InvalidateExpiredRouteEvents(routeId);
-            return GetRouteEvents(routeId, userId);
+            return GetRouteEvents(routeId);
         }
 
         private async Task AddNewRouteEvents(string userId, List<SituationRecord> rsdTrafficEvents)
@@ -138,12 +140,23 @@ namespace TrafficEventsInformer.Services
 
         private async Task<List<SituationRecord>> GetRsdTrafficEvents()
         {
-            using (var httpClient = new HttpClient())
+            var handler = new HttpClientHandler
+            {
+                SslProtocols = SslProtocols.Tls12
+            };
+
+
+            using (var httpClient = new HttpClient(handler))
             {
                 CommonTI commonTICredentials = _config.GetSection("CommonTI").Get<CommonTI>();
                 var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{commonTICredentials.Username}:{commonTICredentials.Password}"));
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
                 httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip");
+
+                // Make GCR work
+                httpClient.Timeout = TimeSpan.FromSeconds(180);
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("TeiApi (Windows 10; .NET 8)");
+
                 var apiUrl = "https://mobilitydata.rsd.cz/Resources/Dynamic/CommonTIDatex/";
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
                 var situations = new List<SituationRecord>();
@@ -196,10 +209,16 @@ namespace TrafficEventsInformer.Services
             List<SituationRecord> routeEvents = GetEventsOnUsersRoute(route.RouteCoordinates, activeEvents).ToList();
             foreach (var routeEvent in routeEvents)
             {
-                if (!_trafficEventsRepository.RouteEventExists(routeEvent.id))
+                TrafficRoute trafficRoute = _trafficRoutesRepository.GetRoute(route.RouteId);
+                RouteEvent routeEventEntity;
+
+                if (_trafficEventsRepository.RouteEventExists(routeEvent.id))
                 {
-                    TrafficRoute trafficRoute = _trafficRoutesRepository.GetRoute(route.RouteId);
-                    RouteEvent newRouteEvent = new RouteEvent()
+                    routeEventEntity = _trafficEventsRepository.GetRouteEvent(routeEvent.id);
+                }
+                else
+                {
+                    routeEventEntity = new RouteEvent()
                     {
                         Id = routeEvent.id,
                         Type = (int)Enum.Parse<EventType>(routeEvent.GetType().Name),
@@ -213,16 +232,21 @@ namespace TrafficEventsInformer.Services
                         Expired = false
                     };
 
+                    _trafficEventsRepository.AddRouteEvent(routeEventEntity);
+                }
+
+                if (!_trafficEventsRepository.IsRouteEventAssignedToUser(routeEvent.id, userId))
+                {
                     TrafficRouteRouteEvent trafficRouteRouteEvent = new TrafficRouteRouteEvent()
                     {
                         TrafficRouteId = trafficRoute.Id,
-                        RouteEventId = newRouteEvent.Id,
+                        RouteEventId = routeEventEntity.Id,
                         Name = routeEvent.generalPublicComment[0].comment.values[0].Value.Split(',')[0],
                         UserId = userId
                     };
 
-                    _trafficEventsRepository.AddRouteEvent(newRouteEvent, trafficRouteRouteEvent);
-                    _pushNotificationService.SendEventStartNotificationAsync(newRouteEvent.StartDate, new string[] { trafficRoute.Name }, trafficRoute.Id, newRouteEvent.Id, userId);
+                    _trafficEventsRepository.AssignRouteEventToUser(trafficRouteRouteEvent);
+                    _pushNotificationService.SendEventStartNotificationAsync(routeEventEntity.StartDate, new string[] { trafficRoute.Name }, trafficRoute.Id, routeEventEntity.Id, userId);
                 }
             }
         }
@@ -235,8 +259,9 @@ namespace TrafficEventsInformer.Services
             {
                 foreach (SituationRecord situation in situations)
                 {
-                    WgsPoint wgsPoint = convertedCoordinates[situation.id];
-                    if (_geoService.AreCoordinatesWithinRadius(routePoint.Lat, routePoint.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
+                    // TODO: Replace TryGetValue with proper solution (related to null startPoint)
+                    if (convertedCoordinates.TryGetValue(situation.id, out WgsPoint wgsPoint) &&
+                        _geoService.AreCoordinatesWithinRadius(routePoint.Lat, routePoint.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
                         !result.Any(x => x.id == situation.id))
                     {
                         result.Add(situation);
@@ -246,9 +271,9 @@ namespace TrafficEventsInformer.Services
             return result;
         }
 
-        public void RenameRouteEvent(int routeId, string eventId, string name, string userId)
+        public void RenameRouteEvent(int routeId, string eventId, string name)
         {
-            _trafficEventsRepository.RenameRouteEvent(routeId, eventId, name, userId);
+            _trafficEventsRepository.RenameRouteEvent(routeId, eventId, name);
         }
     }
 }

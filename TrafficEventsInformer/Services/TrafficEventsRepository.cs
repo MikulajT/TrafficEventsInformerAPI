@@ -12,10 +12,10 @@ namespace TrafficEventsInformer.Services
         {
             _dbContext = dbContext;
         }
-        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId, string userId)
+        public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
         {
             return _dbContext.TrafficRouteRouteEvents
-                .Where(x => x.TrafficRouteId == routeId && !x.RouteEvent.Expired && x.UserId == userId)
+                .Where(x => x.TrafficRouteId == routeId && !x.RouteEvent.Expired)
                 .Select(x => new RouteEventDto()
                 {
                     Id = x.RouteEventId,
@@ -27,21 +27,19 @@ namespace TrafficEventsInformer.Services
                 }).ToList();
         }
 
-        public RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId, string userId)
+        public RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId)
         {
             return new RouteEventDetailEntities()
             {
                 RouteEvent = _dbContext.RouteEvents.SingleOrDefault(x => x.Id == eventId),
-                TrafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId && x.UserId == userId),
+                TrafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId),
                 TrafficRouteRouteEvent = _dbContext.TrafficRouteRouteEvents.SingleOrDefault(x => x.TrafficRouteId == routeId
-                    && x.RouteEventId == eventId
-                    && x.UserId == userId)
+                    && x.RouteEventId == eventId)
             };
         }
 
-        public void AddRouteEvent(RouteEvent routeEvent, TrafficRouteRouteEvent trafficRouteRouteEvent)
+        public void AddRouteEvent(RouteEvent routeEvent)
         {
-            _dbContext.TrafficRouteRouteEvents.Add(trafficRouteRouteEvent);
             _dbContext.RouteEvents.Add(routeEvent);
             _dbContext.SaveChanges();
         }
@@ -93,12 +91,27 @@ namespace TrafficEventsInformer.Services
             });
         }
 
-        public void RenameRouteEvent(int routeId, string eventId, string name, string userId)
+        public void RenameRouteEvent(int routeId, string eventId, string name)
         {
             TrafficRouteRouteEvent routeEvent = _dbContext.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId
-                && x.RouteEventId == eventId
-                && x.UserId == userId);
+                && x.RouteEventId == eventId);
             routeEvent.Name = name;
+            _dbContext.SaveChanges();
+        }
+
+        public bool IsRouteEventAssignedToUser(string eventId, string userId)
+        {
+            return _dbContext.TrafficRouteRouteEvents.Any(x => x.RouteEventId == eventId && x.UserId == userId);
+        }
+
+        public RouteEvent GetRouteEvent(string eventId)
+        {
+            return _dbContext.RouteEvents.Single(x => x.Id == eventId);
+        }
+
+        public void AssignRouteEventToUser(TrafficRouteRouteEvent trafficRouteRouteEvent)
+        {
+            _dbContext.TrafficRouteRouteEvents.Add(trafficRouteRouteEvent);
             _dbContext.SaveChanges();
         }
     }

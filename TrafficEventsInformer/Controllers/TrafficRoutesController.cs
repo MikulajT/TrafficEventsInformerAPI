@@ -16,16 +16,16 @@ namespace TrafficEventsInformer.Controllers
 
         [HttpGet]
         [Route("api/users/{userId}/trafficRoutes")]
-        public IActionResult GetTrafficRoutes(string userId)
+        public IActionResult GetUsersRoutes(string userId)
         {
             return Ok(_trafficRouteService.GetTrafficRouteNames(userId));
         }
 
         [HttpPost]
-        [Route("api/users/{userId}/trafficRoutes")]
-        public async Task<IActionResult> AddRouteAsync([FromRoute] string userId, [FromForm] AddRouteRequest requestData)
+        [Route("api/trafficRoutes")]
+        public async Task<IActionResult> AddRouteAsync([FromForm] AddRouteRequestDto requestData)
         {
-            int routeId = _trafficRouteService.AddRoute(requestData, userId);
+            int routeId = _trafficRouteService.AddRoute(requestData);
             return Ok(routeId);
         }
 
@@ -39,10 +39,10 @@ namespace TrafficEventsInformer.Controllers
 
         [HttpPut]
         [Route("api/trafficRoutes/{routeId:int}")]
-        public IActionResult UpdateRoute(int routeId, [FromBody] UpdateRouteRequest requestData)
+        public IActionResult RenameRoute(int routeId, [FromBody] UpdateRouteRequest requestData)
         {
             requestData.RouteId = routeId;
-            _trafficRouteService.UpdateRoute(requestData);
+            _trafficRouteService.RenameRoute(requestData);
             return Ok();
         }
     }

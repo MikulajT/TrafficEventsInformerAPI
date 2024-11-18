@@ -14,28 +14,58 @@ namespace TrafficEventsInformer.Services
 
         public void AddFcmDeviceToken(string userId, string token)
         {
-
-            _dbContext.Users.Add(new User()
+            Device device = new Device()
             {
-                Id = userId,
-                FcmDeviceToken = token
-            });
+                FcmToken = token,
+            };
+            _dbContext.Devices.Add(device);
+
+            User user = _dbContext.Users.Single(x => x.Id == userId);
+
+            if (user.Devices == null)
+            {
+                user.Devices = new List<Device>();
+            }
+
+            if (!user.Devices.Any(x => x.FcmToken == token))
+            {
+                user.Devices.Add(device);
+            }
+
             _dbContext.SaveChanges();
         }
 
-        public bool FcmDeviceTokenExists(string userId, string token)
+        public bool UserHasToken(string userId, string token)
         {
-            return _dbContext.Users.Any(x => x.Id == userId && x.FcmDeviceToken == token);
+            return _dbContext.Users.Any(x => x.Id == userId && x.Devices.Select(x => x.FcmToken).Contains(token));
         }
 
         public IEnumerable<string> GetFcmDeviceTokens(string userId)
         {
-            return _dbContext.Users.Where(x => x.Id == userId).Select(x => x.FcmDeviceToken);
+            return _dbContext.Users
+                .Where(x => x.Id == userId)
+                .SelectMany(x => x.Devices)
+                .Select(x => x.FcmToken);
         }
 
-        public IEnumerable<string> GetUserIds()
+        public IEnumerable<User> GetUsers()
         {
-            return _dbContext.Users.Select(x => x.Id);
+            return _dbContext.Users.ToList();
+        }
+
+        public bool UserExists(string userId)
+        {
+            return _dbContext.Users.Any(x => x.Id == userId);
+        }
+
+        public void AddUser(string userId, string email)
+        {
+            _dbContext.Users.Add(new User()
+            {
+                Id = userId,
+                Email = email
+            });
+            _dbContext.SaveChanges();
         }
     }
 }

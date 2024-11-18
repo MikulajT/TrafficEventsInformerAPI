@@ -30,7 +30,7 @@ namespace TrafficEventsInformer.Services
             return result;
         }
 
-        public int AddRoute(AddRouteRequest routeRequest, string userId)
+        public int AddRoute(AddRouteRequestDto routeRequest)
         {
             var serializer = new XmlSerializer(typeof(Gpx));
             using (var reader = new StreamReader(routeRequest.RouteFile.OpenReadStream()))
@@ -41,7 +41,7 @@ namespace TrafficEventsInformer.Services
                     serializer.Serialize(stringWriter, routeCoordinates);
                     string textCoordinates = stringWriter.ToString();
                     textCoordinates = SanitizeXml(textCoordinates);
-                    return _trafficRouteRepository.AddRoute(routeRequest.RouteName, textCoordinates, userId);
+                    return _trafficRouteRepository.AddRoute(routeRequest.RouteName, textCoordinates, routeRequest.UserId);
                 }
             }
         }
@@ -51,9 +51,9 @@ namespace TrafficEventsInformer.Services
             _trafficRouteRepository.DeleteRoute(routeId);
         }
 
-        public void UpdateRoute(UpdateRouteRequest requestData)
+        public void RenameRoute(UpdateRouteRequest requestData)
         {
-            _trafficRouteRepository.UpdateRoute(requestData);
+            _trafficRouteRepository.RenameRoute(requestData);
         }
 
         private string SanitizeXml(string xml)

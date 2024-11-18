@@ -1,4 +1,5 @@
-﻿using TrafficEventsInformer.Models;
+﻿using TrafficEventsInformer.Ef.Models;
+using TrafficEventsInformer.Models;
 
 namespace TrafficEventsInformer.Services
 {
@@ -13,7 +14,7 @@ namespace TrafficEventsInformer.Services
 
         public ServiceResult AddFcmDeviceToken(string userId, string token)
         {
-            if (_usersRepository.FcmDeviceTokenExists(userId, token))
+            if (_usersRepository.UserHasToken(userId, token))
             {
                 return ServiceResult.ResourceExists;
             }
@@ -24,14 +25,27 @@ namespace TrafficEventsInformer.Services
             }
         }
 
-        public bool FcmDeviceTokenExists(string userId, string token)
+        public bool UserHasToken(string userId, string token)
         {
-            return _usersRepository.FcmDeviceTokenExists(userId, token);
+            return _usersRepository.UserHasToken(userId, token);
         }
 
-        public IEnumerable<string> GetUserIds()
+        public IEnumerable<User> GetUsers()
         {
-            return _usersRepository.GetUserIds();
+            return _usersRepository.GetUsers();
+        }
+
+        public ServiceResult AddUser(AddUserRequestDto requestDto)
+        {
+            if (_usersRepository.UserExists(requestDto.Id))
+            {
+                return ServiceResult.ResourceExists;
+            }
+            else
+            {
+                _usersRepository.AddUser(requestDto.Id, requestDto.Email);
+                return ServiceResult.Success;
+            }
         }
     }
 }

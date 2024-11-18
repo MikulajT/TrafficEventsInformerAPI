@@ -18,10 +18,10 @@ namespace TrafficEventsInformer.Services
             return _dbContext.TrafficRoutes
                 .Where(x => x.UserId == userId)
                 .Select(x => new TrafficRoute()
-            {
-                Id = x.Id,
-                Name = x.Name
-            });
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                });
         }
 
         public int AddRoute(string routeName, string routeCoordinates, string userId)
@@ -66,7 +66,7 @@ namespace TrafficEventsInformer.Services
             _dbContext.SaveChanges();
         }
 
-        public void UpdateRoute(UpdateRouteRequest requestData)
+        public void RenameRoute(UpdateRouteRequest requestData)
         {
             var route = _dbContext.TrafficRoutes.Single(x => x.Id == requestData.RouteId);
             route.Name = requestData.RouteName;

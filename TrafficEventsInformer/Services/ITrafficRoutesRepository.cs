@@ -10,6 +10,6 @@ namespace TrafficEventsInformer.Services
         IEnumerable<TrafficRoute> GetRoutes(string userId);
         TrafficRoute GetRoute(int routeId);
         void DeleteRoute(int routeId);
-        void UpdateRoute(UpdateRouteRequest requestData);
+        void RenameRoute(UpdateRouteRequest requestData);
     }
 }

@@ -15,6 +15,22 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpPost]
+        [Route("/api/users")]
+        public IActionResult AddUser([FromBody] AddUserRequestDto requestBody)
+        {
+            ServiceResult serviceResult = _usersService.AddUser(requestBody);
+
+            if (serviceResult == ServiceResult.Success)
+            {
+                return Ok();
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status409Conflict);
+            }
+        }
+
+        [HttpPost]
         [Route("/api/users/{userId}/fcm-tokens")]
         public IActionResult AddFcmDeviceToken([FromRoute] string userId, [FromBody] string fcmDeviceToken)
         {
@@ -31,15 +47,14 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpHead]
-        [Route("/api/users/{userId}/fcm-tokens/{fcmDeviceToken}")]
-        public IActionResult FcmDeviceTokenExists([FromRoute] string userId, [FromRoute] string fcmDeviceToken)
+        [Route("/api/users/{userId}/fcm-tokens")]
+        public IActionResult UserHasToken([FromRoute] string userId, [FromBody] string fcmDeviceToken)
         {
-            bool tokenExists = _usersService.FcmDeviceTokenExists(userId, fcmDeviceToken);
+            bool tokenExists = _usersService.UserHasToken(userId, fcmDeviceToken);
 
             if (tokenExists)
             {
                 return Ok();
-
             }
             else
             {

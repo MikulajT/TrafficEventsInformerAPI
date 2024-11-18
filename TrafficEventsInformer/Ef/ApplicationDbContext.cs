@@ -14,7 +14,7 @@ namespace TrafficEventsInformer.Ef
         public DbSet<RouteEvent> RouteEvents { get; set; }
         public DbSet<TrafficRouteRouteEvent> TrafficRouteRouteEvents { get; set; }
         public DbSet<User> Users { get; set; }
-
+        public DbSet<Device> Devices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,7 +44,11 @@ namespace TrafficEventsInformer.Ef
             });
             modelBuilder.Entity<User>(entity =>
             {
-                entity.HasKey(e => new { e.Id, e.FcmDeviceToken });
+                entity.HasKey(e => new { e.Id });
+            });
+            modelBuilder.Entity<Device>(entity =>
+            {
+                entity.HasKey(e => e.FcmToken);
             });
             //modelBuilder.Ignore<TrafficRoute>();
             //modelBuilder.Ignore<RouteEvent>();
