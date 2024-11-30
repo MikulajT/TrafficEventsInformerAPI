@@ -12,22 +12,17 @@ namespace TrafficEventsInformer.Controllers
         [Route("")]
         public IActionResult Index()
         {
-            return Ok("API is running.");
-        }
+            return Ok(@"
 
-        [HttpGet]
-        [Route("download-db")]
-        public IActionResult DownloadSQLiteDb()
-        {
-            var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "tei.db");
-
-            if (System.IO.File.Exists(dbPath))
-            {
-                var fileBytes = System.IO.File.ReadAllBytes(dbPath);
-                return File(fileBytes, "application/octet-stream", "tei.db");
-            }
-
-            return NotFound("Database file not found");
+  _______ ______ _____            _____ _____   _                              _
+ |__   __|  ____|_   _|     /\   |  __ \_   _| (_)                            (_)
+    | |  | |__    | |      /  \  | |__) || |    _ ___   _ __ _   _ _ __  _ __  _ _ __   __ _
+    | |  |  __|   | |     / /\ \ |  ___/ | |   | / __| | '__| | | | '_ \| '_ \| | '_ \ / _` |
+    | |  | |____ _| |_   / ____ \| |    _| |_  | \__ \ | |  | |_| | | | | | | | | | | | (_| |
+    |_|  |______|_____| /_/    \_\_|   |_____| |_|___/ |_|   \__,_|_| |_|_| |_|_|_| |_|\__, |
+                                                                                        __/ |
+                                                                                       |___/
+            ");
         }
     }
 }
