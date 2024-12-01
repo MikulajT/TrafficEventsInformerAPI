@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Localization;
 using System.IO.Compression;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
 using System.Text;
@@ -47,9 +46,7 @@ namespace TrafficEventsInformer.Services
         {
             RouteEventDetailEntities eventDetailEntities = _trafficEventsRepository.GetRouteEventDetail(routeId, eventId);
             GetRouteEventDetailResponse routeEventDetail = new GetRouteEventDetailResponse();
-            if (eventDetailEntities?.TrafficRoute != null &&
-                eventDetailEntities?.RouteEvent != null &&
-                eventDetailEntities?.TrafficRouteRouteEvent != null)
+            if (eventDetailEntities?.RouteEvent != null && eventDetailEntities?.TrafficRouteRouteEvent != null)
             {
                 routeEventDetail.Id = eventDetailEntities.RouteEvent.Id;
                 routeEventDetail.Name = eventDetailEntities.TrafficRouteRouteEvent.Name;
@@ -66,13 +63,17 @@ namespace TrafficEventsInformer.Services
             return routeEventDetail;
         }
 
+        /// <summary>
+        /// Used for automatic periodical sync
+        /// </summary>
+        /// <returns></returns>
         public async Task SyncRouteEventsAsync()
         {
             List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
 
             foreach (User user in _usersService.GetUsers())
             {
-                await AddNewRouteEvents(user.Id, activeTrafficEvents);
+                await AddRouteEvents(user.Id, activeTrafficEvents);
             }
 
             InvalidateExpiredRouteEvents();
@@ -81,85 +82,23 @@ namespace TrafficEventsInformer.Services
         public async Task SyncRouteEventsAsync(string userId)
         {
             List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
-            await AddNewRouteEvents(userId, activeTrafficEvents);
+            await AddRouteEvents(userId, activeTrafficEvents);
             InvalidateExpiredRouteEvents();
-        }
-
-        public async Task<IEnumerable<RouteEventDto>> SyncRouteEventsAsync(int routeId, string userId)
-        {
-            List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
-            await AddNewRouteEvents(routeId, userId, activeTrafficEvents);
-            InvalidateExpiredRouteEvents(routeId);
-            return GetRouteEvents(routeId);
-        }
-
-        private async Task AddNewRouteEvents(string userId, List<SituationRecord> rsdTrafficEvents)
-        {
-            List<RouteWithCoordinates> routesWithCoordinates = GetRoutesWithCoordinates(userId).ToList();
-            foreach (var routeWithCoordinates in routesWithCoordinates)
-            {
-                await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
-            }
-        }
-
-        private void InvalidateExpiredRouteEvents()
-        {
-            _trafficEventsRepository.InvalidateExpiredRouteEvents();
-        }
-
-        private IEnumerable<RouteWithCoordinates> GetRoutesWithCoordinates(string userId)
-        {
-            var usersRouteCoordinates = new List<RouteWithCoordinates>();
-            List<TrafficRoute> usersRoutes = _trafficRoutesRepository.GetRoutes(userId).ToList();
-            XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
-            foreach (var usersRoute in usersRoutes)
-            {
-                using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
-                {
-                    Gpx route = (Gpx)serializer.Deserialize(stringReader);
-                    usersRouteCoordinates.Add(new RouteWithCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt));
-                }
-            }
-            return usersRouteCoordinates;
-        }
-
-        private async Task AddNewRouteEvents(int routeId, string userId, List<SituationRecord> rsdTrafficEvents)
-        {
-            RouteWithCoordinates routeWithCoordinates = GetUsersRouteWithCoordinates(routeId);
-            await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
-        }
-
-        private void InvalidateExpiredRouteEvents(int routeId)
-        {
-            List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
-            foreach (var expiredRouteEvent in expiredRouteEvents)
-            {
-                _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.Id, expiredRouteEvent.UserId);
-            }
         }
 
         private async Task<List<SituationRecord>> GetRsdTrafficEvents()
         {
-            var handler = new HttpClientHandler
-            {
-                SslProtocols = SslProtocols.Tls12
-            };
-
-
-            using (var httpClient = new HttpClient(handler))
+            using (var httpClient = new HttpClient())
             {
                 CommonTI commonTICredentials = _config.GetSection("CommonTI").Get<CommonTI>();
                 var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{commonTICredentials.Username}:{commonTICredentials.Password}"));
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
                 httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip");
-
-                // Make GCR work
-                httpClient.Timeout = TimeSpan.FromSeconds(180);
-                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("TeiApi (Windows 10; .NET 8)");
-
                 var apiUrl = "https://mobilitydata.rsd.cz/Resources/Dynamic/CommonTIDatex/";
+
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
                 var situations = new List<SituationRecord>();
+
                 if (response.IsSuccessStatusCode)
                 {
                     string content = "";
@@ -193,20 +132,65 @@ namespace TrafficEventsInformer.Services
             }
         }
 
-        public RouteWithCoordinates GetUsersRouteWithCoordinates(int routeId)
+        private async Task AddRouteEvents(string userId, List<SituationRecord> rsdTrafficEvents)
+        {
+            List<RouteCoordinates> routeCoordinates = GetRouteCoordinates(userId).ToList();
+            foreach (var routeWithCoordinates in routeCoordinates)
+            {
+                await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
+            }
+        }
+
+        private IEnumerable<RouteCoordinates> GetRouteCoordinates(string userId)
+        {
+            var usersRouteCoordinates = new List<RouteCoordinates>();
+            List<TrafficRoute> usersRoutes = _trafficRoutesRepository.GetRoutes(userId).ToList();
+            XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
+            foreach (var usersRoute in usersRoutes)
+            {
+                using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
+                {
+                    Gpx route = (Gpx)serializer.Deserialize(stringReader);
+                    usersRouteCoordinates.Add(new RouteCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt));
+                }
+            }
+            return usersRouteCoordinates;
+        }
+
+        private void InvalidateExpiredRouteEvents()
+        {
+            _trafficEventsRepository.InvalidateExpiredRouteEvents();
+        }
+
+        private async Task AddNewRouteEvents(int routeId, string userId, List<SituationRecord> rsdTrafficEvents)
+        {
+            RouteCoordinates routeWithCoordinates = GetRouteCoordinates(routeId);
+            await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
+        }
+
+        private void InvalidateExpiredRouteEvents(int routeId)
+        {
+            List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
+            foreach (var expiredRouteEvent in expiredRouteEvents)
+            {
+                _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.Id, expiredRouteEvent.UserId);
+            }
+        }
+
+        public RouteCoordinates GetRouteCoordinates(int routeId)
         {
             TrafficRoute usersRoute = _trafficRoutesRepository.GetRoute(routeId);
             XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
             using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
             {
                 Gpx route = (Gpx)serializer.Deserialize(stringReader);
-                return new RouteWithCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt);
+                return new RouteCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt);
             }
         }
 
-        private async Task AddRouteEvent(List<SituationRecord> activeEvents, RouteWithCoordinates route, string userId)
+        private async Task AddRouteEvent(List<SituationRecord> activeEvents, RouteCoordinates route, string userId)
         {
-            List<SituationRecord> routeEvents = GetEventsOnUsersRoute(route.RouteCoordinates, activeEvents).ToList();
+            List<SituationRecord> routeEvents = GetEventsOnRoute(route.Coordinates, activeEvents).ToList();
             foreach (var routeEvent in routeEvents)
             {
                 TrafficRoute trafficRoute = _trafficRoutesRepository.GetRoute(route.RouteId);
@@ -251,20 +235,20 @@ namespace TrafficEventsInformer.Services
             }
         }
 
-        public IEnumerable<SituationRecord> GetEventsOnUsersRoute(IEnumerable<Trkpt> routePoints, IEnumerable<SituationRecord> situations)
+        private IEnumerable<SituationRecord> GetEventsOnRoute(IEnumerable<Trkpt> coordinates, IEnumerable<SituationRecord> trafficEvents)
         {
             var result = new List<SituationRecord>();
-            var convertedCoordinates = _geoService.ConvertCoordinates(situations);
-            foreach (Trkpt routePoint in routePoints)
+            var convertedCoordinates = _geoService.ConvertCoordinates(trafficEvents);
+            foreach (Trkpt coordinate in coordinates)
             {
-                foreach (SituationRecord situation in situations)
+                foreach (SituationRecord trafficEvent in trafficEvents)
                 {
                     // TODO: Replace TryGetValue with proper solution (related to null startPoint)
-                    if (convertedCoordinates.TryGetValue(situation.id, out WgsPoint wgsPoint) &&
-                        _geoService.AreCoordinatesWithinRadius(routePoint.Lat, routePoint.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
-                        !result.Any(x => x.id == situation.id))
+                    if (convertedCoordinates.TryGetValue(trafficEvent.id, out WgsPoint wgsPoint) &&
+                        _geoService.AreCoordinatesWithinRadius(coordinate.Lat, coordinate.Lon, wgsPoint.Latitude, wgsPoint.Longtitude, 50) &&
+                        !result.Any(x => x.id == trafficEvent.id))
                     {
-                        result.Add(situation);
+                        result.Add(trafficEvent);
                     }
                 }
             }

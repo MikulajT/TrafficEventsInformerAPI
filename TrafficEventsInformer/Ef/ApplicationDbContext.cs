@@ -53,6 +53,8 @@ namespace TrafficEventsInformer.Ef
             //modelBuilder.Ignore<TrafficRoute>();
             //modelBuilder.Ignore<RouteEvent>();
             //modelBuilder.Ignore<TrafficRouteRouteEvents>();
+            //modelBuilder.Ignore<Users>();
+            //modelBuilder.Ignore<Devices>();
         }
     }
 }

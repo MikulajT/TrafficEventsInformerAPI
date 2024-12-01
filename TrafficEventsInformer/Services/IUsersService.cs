@@ -5,9 +5,9 @@ namespace TrafficEventsInformer.Services
 {
     public interface IUsersService
     {
-        ServiceResult AddFcmDeviceToken(string userId, string token);
+        void AddFcmDeviceToken(string userId, string token);
         bool UserHasToken(string userId, string token);
         IEnumerable<User> GetUsers();
-        ServiceResult AddUser(AddUserRequestDto requestDto);
+        void AddUser(AddUserRequestDto requestDto);
     }
 }

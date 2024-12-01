@@ -16,7 +16,7 @@ namespace TrafficEventsInformer.Controllers
 
         [HttpGet]
         [Route("api/users/{userId}/trafficRoutes")]
-        public IActionResult GetUsersRoutes(string userId)
+        public IActionResult GetRoutes(string userId)
         {
             return Ok(_trafficRouteService.GetTrafficRouteNames(userId));
         }

@@ -32,7 +32,6 @@ namespace TrafficEventsInformer.Services
             return new RouteEventDetailEntities()
             {
                 RouteEvent = _dbContext.RouteEvents.SingleOrDefault(x => x.Id == eventId),
-                TrafficRoute = _dbContext.TrafficRoutes.SingleOrDefault(x => x.Id == routeId),
                 TrafficRouteRouteEvent = _dbContext.TrafficRouteRouteEvents.SingleOrDefault(x => x.TrafficRouteId == routeId
                     && x.RouteEventId == eventId)
             };

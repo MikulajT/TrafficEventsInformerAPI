@@ -18,32 +18,16 @@ namespace TrafficEventsInformer.Controllers
         [Route("/api/users")]
         public IActionResult AddUser([FromBody] AddUserRequestDto requestBody)
         {
-            ServiceResult serviceResult = _usersService.AddUser(requestBody);
-
-            if (serviceResult == ServiceResult.Success)
-            {
-                return Ok();
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status409Conflict);
-            }
+            _usersService.AddUser(requestBody);
+            return Ok();
         }
 
         [HttpPost]
         [Route("/api/users/{userId}/fcm-tokens")]
         public IActionResult AddFcmDeviceToken([FromRoute] string userId, [FromBody] string fcmDeviceToken)
         {
-            ServiceResult serviceResult = _usersService.AddFcmDeviceToken(userId, fcmDeviceToken);
-
-            if (serviceResult == ServiceResult.Success)
-            {
-                return Ok();
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status409Conflict);
-            }
+            _usersService.AddFcmDeviceToken(userId, fcmDeviceToken);
+            return Ok();
         }
 
         [HttpHead]

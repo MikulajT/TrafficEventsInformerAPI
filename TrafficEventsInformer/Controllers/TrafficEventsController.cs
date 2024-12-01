@@ -15,6 +15,7 @@ namespace TrafficEventsInformer.Controllers
             _pushNotificationService = pushNotificationService;
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet]
         [Route("api/trafficRoutes/fcmTest")]
         public IActionResult fcmTest()
@@ -40,18 +41,18 @@ namespace TrafficEventsInformer.Controllers
 
         [HttpPost]
         [Route("api/users/{userId}/trafficRoutes/events/sync")]
-        public async Task<IActionResult> SyncAllUsersRouteEvents(string userId)
+        public async Task<IActionResult> SyncAllRouteEvents(string userId)
         {
             await _trafficEventsService.SyncRouteEventsAsync(userId);
             return Ok();
         }
 
-        [HttpPost]
-        [Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/sync")]
-        public async Task<IActionResult> SyncUsersRouteEvents(string userId, int routeId)
-        {
-            return Ok(await _trafficEventsService.SyncRouteEventsAsync(routeId, userId));
-        }
+        //[HttpPost]
+        //[Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/sync")]
+        //public async Task<IActionResult> SyncRouteEvents(string userId, int routeId)
+        //{
+        //    return Ok(await _trafficEventsService.SyncRouteEventsAsync(routeId, userId));
+        //}
 
         [HttpPut]
         [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]

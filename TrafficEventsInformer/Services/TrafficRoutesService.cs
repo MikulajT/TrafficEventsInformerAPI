@@ -45,17 +45,6 @@ namespace TrafficEventsInformer.Services
                 }
             }
         }
-
-        public void DeleteRoute(int routeId)
-        {
-            _trafficRouteRepository.DeleteRoute(routeId);
-        }
-
-        public void RenameRoute(UpdateRouteRequest requestData)
-        {
-            _trafficRouteRepository.RenameRoute(requestData);
-        }
-
         private string SanitizeXml(string xml)
         {
             // Define a regex pattern to match forbidden characters
@@ -65,6 +54,16 @@ namespace TrafficEventsInformer.Services
             string sanitizedXml = Regex.Replace(xml, forbiddenPattern, string.Empty);
 
             return sanitizedXml;
+        }
+
+        public void DeleteRoute(int routeId)
+        {
+            _trafficRouteRepository.DeleteRoute(routeId);
+        }
+
+        public void RenameRoute(UpdateRouteRequest requestData)
+        {
+            _trafficRouteRepository.RenameRoute(requestData);
         }
     }
 }

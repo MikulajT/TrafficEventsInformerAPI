@@ -12,16 +12,11 @@ namespace TrafficEventsInformer.Services
             _usersRepository = usersRepository;
         }
 
-        public ServiceResult AddFcmDeviceToken(string userId, string token)
+        public void AddFcmDeviceToken(string userId, string token)
         {
-            if (_usersRepository.UserHasToken(userId, token))
-            {
-                return ServiceResult.ResourceExists;
-            }
-            else
+            if (!_usersRepository.UserHasToken(userId, token))
             {
                 _usersRepository.AddFcmDeviceToken(userId, token);
-                return ServiceResult.Success;
             }
         }
 
@@ -35,16 +30,11 @@ namespace TrafficEventsInformer.Services
             return _usersRepository.GetUsers();
         }
 
-        public ServiceResult AddUser(AddUserRequestDto requestDto)
+        public void AddUser(AddUserRequestDto requestDto)
         {
-            if (_usersRepository.UserExists(requestDto.Id))
-            {
-                return ServiceResult.ResourceExists;
-            }
-            else
+            if (!_usersRepository.UserExists(requestDto.Id))
             {
                 _usersRepository.AddUser(requestDto.Id, requestDto.Email);
-                return ServiceResult.Success;
             }
         }
     }
