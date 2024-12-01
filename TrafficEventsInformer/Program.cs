@@ -35,7 +35,7 @@ namespace TrafficEventsInformer
             });
 
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Warning()
+                .MinimumLevel.Information()
                 .WriteTo.File($"Logs/{Assembly.GetExecutingAssembly().GetName().Name}.log")
                 .WriteTo.Console()
                 .CreateLogger();
