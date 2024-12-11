@@ -17,20 +17,21 @@ namespace TrafficEventsInformer.Services
             Device device = new Device()
             {
                 FcmToken = token,
+                UserId = userId
             };
             _dbContext.Devices.Add(device);
 
-            User user = _dbContext.Users.Single(x => x.Id == userId);
+            //User user = _dbContext.Users.Single(x => x.Id == userId);
 
-            if (user.Devices == null)
-            {
-                user.Devices = new List<Device>();
-            }
+            //if (user.Devices == null)
+            //{
+            //    user.Devices = new List<Device>();
+            //}
 
-            if (!user.Devices.Any(x => x.FcmToken == token))
-            {
-                user.Devices.Add(device);
-            }
+            //if (!user.Devices.Any(x => x.FcmToken == token))
+            //{
+            //    user.Devices.Add(device);
+            //}
 
             _dbContext.SaveChanges();
         }

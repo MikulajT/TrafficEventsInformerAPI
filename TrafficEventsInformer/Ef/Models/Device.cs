@@ -3,5 +3,6 @@
     public class Device
     {
         public string FcmToken;
+        public string UserId;
     }
 }

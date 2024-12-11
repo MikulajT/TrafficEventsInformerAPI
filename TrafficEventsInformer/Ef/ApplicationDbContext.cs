@@ -48,7 +48,7 @@ namespace TrafficEventsInformer.Ef
             });
             modelBuilder.Entity<Device>(entity =>
             {
-                entity.HasKey(e => e.FcmToken);
+                entity.HasKey(e => new { e.FcmToken, e.UserId });
             });
             //modelBuilder.Ignore<TrafficRoute>();
             //modelBuilder.Ignore<RouteEvent>();
