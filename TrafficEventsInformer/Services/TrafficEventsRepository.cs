@@ -15,7 +15,7 @@ namespace TrafficEventsInformer.Services
         public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
         {
             return _dbContext.TrafficRouteRouteEvents
-                .Where(x => x.TrafficRouteId == routeId && !x.RouteEvent.Expired)
+                .Where(x => x.TrafficRouteId == routeId)
                 .Select(x => new RouteEventDto()
                 {
                     Id = x.RouteEventId,
@@ -23,7 +23,7 @@ namespace TrafficEventsInformer.Services
                     StartDate = x.RouteEvent.StartDate,
                     EndDate = x.RouteEvent.EndDate,
                     TotalDays = (x.RouteEvent.EndDate - x.RouteEvent.StartDate).Days,
-                    DaysRemaining = (x.RouteEvent.EndDate - DateTime.Now).Days
+                    DaysRemaining = (x.RouteEvent.EndDate - DateTime.Now).Days < 0 ? 0 : (x.RouteEvent.EndDate - DateTime.Now).Days
                 }).ToList();
         }
 
@@ -48,47 +48,47 @@ namespace TrafficEventsInformer.Services
             return _dbContext.RouteEvents.Any(x => x.Id == eventId);
         }
 
-        public IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents()
-        {
-            var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired && DateTime.Now > x.EndDate);
-            foreach (var expiredEvent in expiredEvents)
-            {
-                expiredEvent.Expired = true;
-            }
-            _dbContext.SaveChanges();
-            return expiredEvents.Select(x => new ExpiredRouteEventDto()
-            {
-                RouteNames = x.TrafficRouteRouteEvents.Select(y => y.Name).ToArray(),
-                StartDate = x.StartDate,
-                EndDate = x.EndDate
-            });
-        }
+        //public IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents()
+        //{
+        //    var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired && DateTime.Now > x.EndDate);
+        //    foreach (var expiredEvent in expiredEvents)
+        //    {
+        //        expiredEvent.Expired = true;
+        //    }
+        //    _dbContext.SaveChanges();
+        //    return expiredEvents.Select(x => new ExpiredRouteEventDto()
+        //    {
+        //        RouteNames = x.TrafficRouteRouteEvents.Select(y => y.Name).ToArray(),
+        //        StartDate = x.StartDate,
+        //        EndDate = x.EndDate
+        //    });
+        //}
 
-        public IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents(int routeId)
-        {
-            var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired &&
-                DateTime.Now > x.EndDate &&
-                routeId == x.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId).TrafficRouteId);
+        //public IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents(int routeId)
+        //{
+        //    var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired &&
+        //        DateTime.Now > x.EndDate &&
+        //        routeId == x.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId).TrafficRouteId);
 
-            foreach (var expiredEvent in expiredEvents)
-            {
-                expiredEvent.Expired = true;
-            }
+        //    foreach (var expiredEvent in expiredEvents)
+        //    {
+        //        expiredEvent.Expired = true;
+        //    }
 
-            //TODO: Rewrite into single query
-            string userId = _dbContext.TrafficRoutes.Single(x => x.Id == routeId).UserId;
+        //    //TODO: Rewrite into single query
+        //    string userId = _dbContext.TrafficRoutes.Single(x => x.Id == routeId).UserId;
 
-            _dbContext.SaveChanges();
+        //    _dbContext.SaveChanges();
 
-            return expiredEvents.Select(x => new ExpiredRouteEventDto()
-            {
-                Id = x.Id,
-                RouteNames = x.TrafficRouteRouteEvents.Select(y => y.Name).ToArray(),
-                StartDate = x.StartDate,
-                EndDate = x.EndDate,
-                UserId = userId
-            });
-        }
+        //    return expiredEvents.Select(x => new ExpiredRouteEventDto()
+        //    {
+        //        Id = x.Id,
+        //        RouteNames = x.TrafficRouteRouteEvents.Select(y => y.Name).ToArray(),
+        //        StartDate = x.StartDate,
+        //        EndDate = x.EndDate,
+        //        UserId = userId
+        //    });
+        //}
 
         public void RenameRouteEvent(int routeId, string eventId, string name)
         {

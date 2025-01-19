@@ -55,7 +55,7 @@ namespace TrafficEventsInformer.Services
                 routeEventDetail.Description = eventDetailEntities.RouteEvent.Description;
                 routeEventDetail.StartDate = eventDetailEntities.RouteEvent.StartDate;
                 routeEventDetail.EndDate = eventDetailEntities.RouteEvent.EndDate;
-                routeEventDetail.DaysRemaining = (eventDetailEntities.RouteEvent.EndDate - DateTime.Now).Days;
+                routeEventDetail.DaysRemaining = (eventDetailEntities.RouteEvent.EndDate - DateTime.Now).Days < 0 ? 0 : (eventDetailEntities.RouteEvent.EndDate - DateTime.Now).Days;
                 routeEventDetail.StartPointX = eventDetailEntities.RouteEvent.StartPointX;
                 routeEventDetail.StartPointY = eventDetailEntities.RouteEvent.StartPointY;
                 routeEventDetail.EndPointX = eventDetailEntities.RouteEvent.EndPointX;
@@ -77,14 +77,14 @@ namespace TrafficEventsInformer.Services
                 await AddRouteEvents(user.Id, activeTrafficEvents);
             }
 
-            InvalidateExpiredRouteEvents();
+            //InvalidateExpiredRouteEvents();
         }
 
         public async Task SyncRouteEventsAsync(string userId)
         {
             List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
             await AddRouteEvents(userId, activeTrafficEvents);
-            InvalidateExpiredRouteEvents();
+            //InvalidateExpiredRouteEvents();
         }
 
         private async Task<List<SituationRecord>> GetRsdTrafficEvents()
@@ -158,10 +158,10 @@ namespace TrafficEventsInformer.Services
             return usersRouteCoordinates;
         }
 
-        private void InvalidateExpiredRouteEvents()
-        {
-            _trafficEventsRepository.InvalidateExpiredRouteEvents();
-        }
+        //private void InvalidateExpiredRouteEvents()
+        //{
+        //    _trafficEventsRepository.InvalidateExpiredRouteEvents();
+        //}
 
         private async Task AddNewRouteEvents(int routeId, string userId, List<SituationRecord> rsdTrafficEvents)
         {
@@ -169,14 +169,14 @@ namespace TrafficEventsInformer.Services
             await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
         }
 
-        private void InvalidateExpiredRouteEvents(int routeId)
-        {
-            List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
-            foreach (var expiredRouteEvent in expiredRouteEvents)
-            {
-                _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.Id, expiredRouteEvent.UserId);
-            }
-        }
+        //private void InvalidateExpiredRouteEvents(int routeId)
+        //{
+        //    List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
+        //    foreach (var expiredRouteEvent in expiredRouteEvents)
+        //    {
+        //        _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.Id, expiredRouteEvent.UserId);
+        //    }
+        //}
 
         public RouteCoordinates GetRouteCoordinates(int routeId)
         {
