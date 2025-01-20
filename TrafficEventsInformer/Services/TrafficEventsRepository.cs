@@ -16,6 +16,7 @@ namespace TrafficEventsInformer.Services
         {
             return _dbContext.TrafficRouteRouteEvents
                 .Where(x => x.TrafficRouteId == routeId)
+                .OrderByDescending(x => x.RouteEvent.StartDate)
                 .Select(x => new RouteEventDto()
                 {
                     Id = x.RouteEventId,
