@@ -22,9 +22,7 @@ namespace TrafficEventsInformer.Services
                     Id = x.RouteEventId,
                     Name = x.Name,
                     StartDate = x.RouteEvent.StartDate,
-                    EndDate = x.RouteEvent.EndDate,
-                    TotalDays = (x.RouteEvent.EndDate - x.RouteEvent.StartDate).Days,
-                    DaysRemaining = (x.RouteEvent.EndDate - DateTime.Now).Days < 0 ? 0 : (x.RouteEvent.EndDate - DateTime.Now).Days
+                    EndDate = x.RouteEvent.EndDate
                 }).ToList();
         }
 
