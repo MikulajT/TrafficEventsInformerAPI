@@ -231,6 +231,8 @@ namespace TrafficEventsInformer.Services
                     };
 
                     _trafficEventsRepository.AssignRouteEventToUser(trafficRouteRouteEvent);
+
+                    Log.Logger.Information($"SendEventStartNotificationAsync - routeEventEntity.StartDate: {routeEventEntity.StartDate}, trafficRoute.Name: {trafficRoute.Name}, trafficRoute.Id: {trafficRoute.Id}, routeEventEntity.Id: {routeEventEntity.Id}, userId: {userId}");
                     _pushNotificationService.SendEventStartNotificationAsync(routeEventEntity.StartDate, new string[] { trafficRoute.Name }, trafficRoute.Id, routeEventEntity.Id, userId);
                 }
             }
