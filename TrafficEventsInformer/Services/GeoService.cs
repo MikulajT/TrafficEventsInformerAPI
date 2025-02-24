@@ -22,7 +22,7 @@ namespace TrafficEventsInformer.Services
             var convertedCoordinates = new Dictionary<string, WgsPoint>();
 
             // TODO: Properly fix null startPoint
-            foreach (SituationRecord situation in situations.Where(x => ((Linear)x.groupOfLocations).globalNetworkLinear.startPoint != null))
+            foreach (SituationRecord situation in situations.Where(x => ((Linear)x.groupOfLocations)?.globalNetworkLinear?.startPoint != null))
             {
                 situation.id = situation.id.Split('_')[0];
                 WgsPoint wgsPoint = ConvertSjtskToWgs84(((Linear)situation.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskX, ((Linear)situation.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskY);
