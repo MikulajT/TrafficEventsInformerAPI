@@ -77,14 +77,14 @@ namespace TrafficEventsInformer.Services
                 await AddRouteEvents(user.Id, activeTrafficEvents);
             }
 
-            //InvalidateExpiredRouteEvents();
+            InvalidateExpiredRouteEvents();
         }
 
         public async Task SyncRouteEventsAsync(string userId)
         {
             List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
             await AddRouteEvents(userId, activeTrafficEvents);
-            //InvalidateExpiredRouteEvents();
+            InvalidateExpiredRouteEvents();
         }
 
         private async Task<List<SituationRecord>> GetRsdTrafficEvents()
@@ -158,10 +158,18 @@ namespace TrafficEventsInformer.Services
             return usersRouteCoordinates;
         }
 
-        //private void InvalidateExpiredRouteEvents()
-        //{
-        //    _trafficEventsRepository.InvalidateExpiredRouteEvents();
-        //}
+        private void InvalidateExpiredRouteEvents()
+        {
+            List<ExpiredEventDto> expiredEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents().ToList();
+
+            foreach (var expiredEvent in expiredEvents)
+            {
+                foreach (var route in expiredEvent.Routes)
+                {
+                    _pushNotificationService.SendEventEndNotificationAsync(expiredEvent.EndDate, route.RouteName, route.RouteId, expiredEvent.EventId, route.UserId);
+                }
+            }
+        }
 
         private async Task AddNewRouteEvents(int routeId, string userId, List<SituationRecord> rsdTrafficEvents)
         {
@@ -174,7 +182,8 @@ namespace TrafficEventsInformer.Services
         //    List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
         //    foreach (var expiredRouteEvent in expiredRouteEvents)
         //    {
-        //        _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.Id, expiredRouteEvent.UserId);
+        //        // Send notif for each route on which event expired
+        //        _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.RouteEventId, expiredRouteEvent.UserId);
         //    }
         //}
 
@@ -233,7 +242,7 @@ namespace TrafficEventsInformer.Services
                     _trafficEventsRepository.AssignRouteEventToUser(trafficRouteRouteEvent);
 
                     Log.Logger.Information($"SendEventStartNotificationAsync - routeEventEntity.StartDate: {routeEventEntity.StartDate}, trafficRoute.Name: {trafficRoute.Name}, trafficRoute.Id: {trafficRoute.Id}, routeEventEntity.Id: {routeEventEntity.Id}, userId: {userId}");
-                    _pushNotificationService.SendEventStartNotificationAsync(routeEventEntity.StartDate, new string[] { trafficRoute.Name }, trafficRoute.Id, routeEventEntity.Id, userId);
+                    _pushNotificationService.SendEventStartNotificationAsync(routeEventEntity.StartDate, trafficRoute.Name, trafficRoute.Id, routeEventEntity.Id, userId);
                 }
             }
         }
