@@ -9,7 +9,7 @@ namespace TrafficEventsInformer.Services
         RouteEventDetailEntities GetRouteEventDetail(int routeId, string eventId);
         void AddRouteEvent(RouteEvent routeEvent);
         bool RouteEventExists(string eventId);
-        //IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents();
+        IEnumerable<ExpiredEventDto> InvalidateExpiredRouteEvents();
         //IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents(int routeId);
         void RenameRouteEvent(int routeId, string eventId, string name);
         bool IsRouteEventAssignedToUser(string eventId, string userId);
