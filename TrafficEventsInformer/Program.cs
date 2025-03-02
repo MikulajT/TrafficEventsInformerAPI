@@ -1,6 +1,7 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
@@ -48,7 +49,12 @@ namespace TrafficEventsInformer
             });
 
             // Add services to the container.
-            builder.Services.AddControllers();
+            // Add controllers and support for XML input/output
+            builder.Services.AddControllers(options =>
+            {
+                options.InputFormatters.Add(new XmlSerializerInputFormatter(options)); // Enable XML deserialization
+                options.OutputFormatters.Add(new XmlSerializerOutputFormatter()); // Enable XML response support
+            });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
