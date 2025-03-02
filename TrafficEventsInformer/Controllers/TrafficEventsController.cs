@@ -1,4 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using System.IO.Compression;
+using System.Text;
+using System.Xml.Serialization;
+using TrafficEventsInformer.Attributes;
+using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Services;
 
 namespace TrafficEventsInformer.Controllers
@@ -63,6 +69,56 @@ namespace TrafficEventsInformer.Controllers
         {
             _trafficEventsService.RenameRouteEvent(routeId, eventId, name);
             return Ok();
+        }
+
+        [HttpPost]
+        [Route("api/events/sync")]
+        [BasicAuth]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public async Task<IActionResult> SyncEvents()
+        {
+            try
+            {
+                Log.Logger.Information("SyncEvents");
+
+                // Ensure the request is Gzipped
+                //if (!Request.Headers.ContentEncoding.ToString().Contains("gzip"))
+                //{
+                //    return BadRequest("Request is not Gzipped.");
+                //}
+
+                // Decompress the request body
+                using (var decompressedStream = new GZipStream(Request.Body, CompressionMode.Decompress))
+                using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
+                {
+                    string xmlContent = await reader.ReadToEndAsync();
+                    if (string.IsNullOrWhiteSpace(xmlContent))
+                    {
+                        return BadRequest("Empty request body.");
+                    }
+
+                    // Deserialize XML into your D2LogicalModel object
+                    var serializer = new XmlSerializer(typeof(D2LogicalModel));
+                    using (var stringReader = new StringReader(xmlContent))
+                    {
+                        var model = (D2LogicalModel)serializer.Deserialize(stringReader);
+
+                        var situations = ((SituationPublication)model.payloadPublication).situation
+                            .Select(situation => situation.situationRecord[0])
+                            //.Where(record => record.validity.validityTimeSpecification.overallEndTime > DateTime.Now)
+                            .ToList();
+
+                        Log.Logger.Information($"situations count: {situations.Count}");
+
+                        return Ok();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error("Error processing Gzipped XML", ex);
+                return StatusCode(500, new { message = "Error processing Gzipped XML", error = ex.Message });
+            }
         }
     }
 }
