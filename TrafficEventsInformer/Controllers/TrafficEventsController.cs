@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Xml.Serialization;
 using TrafficEventsInformer.Attributes;
-using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Services;
 
 namespace TrafficEventsInformer.Controllers
@@ -21,14 +20,14 @@ namespace TrafficEventsInformer.Controllers
             _pushNotificationService = pushNotificationService;
         }
 
-//#if !DEBUG
-//        [ApiExplorerSettings(IgnoreApi = true)]
-//#endif
+        //#if !DEBUG
+        //        [ApiExplorerSettings(IgnoreApi = true)]
+        //#endif
         [HttpGet]
         [Route("api/trafficRoutes/fcmTest")]
         public IActionResult fcmTest(string routeName, int routeId, string eventId, string userId)
         {
-            _pushNotificationService.SendEventStartNotificationAsync(DateTime.Now, routeName , routeId, eventId, userId);
+            _pushNotificationService.SendEventStartNotificationAsync(DateTime.Now, routeName, routeId, eventId, userId);
             //_pushNotificationService.SendEventStartNotificationAsync(DateTime.Now, new string[] { "nazev trasy1", "nazev trasy2" }, 5, "ff808181-92d8-0768-0193-4d543be021e7", "g_106729405684925826711");
             //_pushNotificationService.SendEventEndNotificationAsync(DateTime.Now, new string[] { "nazev trasy1", "nazev trasy2" }, "1e7ea65d-60be-4cda-958f-d12e571cb671", "106729405684925826711", Models.AuthProvider.Google);
             return Ok("Message successfully sent.");

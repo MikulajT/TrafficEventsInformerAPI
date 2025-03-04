@@ -48,6 +48,18 @@ namespace TrafficEventsInformer
                 Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "trafficeventsinformer-firebase-adminsdk-610ik-10035f39e0.json")),
             });
 
+            builder.Services.AddTransient<IGeoService, GeoService>();
+            builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
+            builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
+            builder.Services.AddTransient<ITrafficEventsRepository, TrafficEventsRepository>();
+            builder.Services.AddTransient<ITrafficEventsService, TrafficEventsService>();
+            builder.Services.AddTransient<IUsersRepository, UsersRepository>();
+            builder.Services.AddTransient<IUsersService, UsersService>();
+            builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
+            builder.Services.AddSingleton<IDopplerService, DopplerService>();
+
+            builder.Services.AddHostedService<TrafficEventsSyncService>();
+
             // Add services to the container.
             // Add controllers and support for XML input/output
             builder.Services.AddControllers(options =>
@@ -61,19 +73,12 @@ namespace TrafficEventsInformer
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseNpgsql(builder.Configuration.GetConnectionString("ConnectionString"));
+                var serviceProvider = builder.Services.BuildServiceProvider();
+                var dopplerService = serviceProvider.GetRequiredService<IDopplerService>();
+
+                options.UseNpgsql(dopplerService.GetDopplerSecretsAsync().Result.DbConnectionString);
                 //options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString"));
             });
-            builder.Services.AddTransient<IGeoService, GeoService>();
-            builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
-            builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
-            builder.Services.AddTransient<ITrafficEventsRepository, TrafficEventsRepository>();
-            builder.Services.AddTransient<ITrafficEventsService, TrafficEventsService>();
-            builder.Services.AddTransient<IUsersRepository, UsersRepository>();
-            builder.Services.AddTransient<IUsersService, UsersService>();
-            builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
-
-            builder.Services.AddHostedService<TrafficEventsSyncService>();
 
             // Needed for Google Cloud Run
 #if !DEBUG
