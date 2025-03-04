@@ -2,12 +2,10 @@
 using Serilog;
 using System.IO.Compression;
 using System.Net.Http.Headers;
-using System.Security.Authentication;
 using System.Text;
 using System.Xml.Serialization;
 using TrafficEventsInformer.Ef.Models;
 using TrafficEventsInformer.Models;
-using TrafficEventsInformer.Models.Configuration;
 using TrafficEventsInformer.Models.UsersRoute;
 
 namespace TrafficEventsInformer.Services
@@ -17,25 +15,25 @@ namespace TrafficEventsInformer.Services
         private readonly ITrafficRoutesRepository _trafficRoutesRepository;
         private readonly ITrafficEventsRepository _trafficEventsRepository;
         private readonly IGeoService _geoService;
-        private readonly IConfiguration _config;
         private readonly IStringLocalizer<TrafficEventsService> _localizer;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly IUsersService _usersService;
+        private readonly IDopplerService _dopplerService;
         public TrafficEventsService(ITrafficRoutesRepository trafficRoutesRepository,
             ITrafficEventsRepository trafficEventsRepository,
             IGeoService geoService,
-            IConfiguration config,
             IStringLocalizer<TrafficEventsService> localizer,
             IPushNotificationService pushNotificationService,
-            IUsersService usersService)
+            IUsersService usersService,
+            IDopplerService dopplerService)
         {
             _trafficRoutesRepository = trafficRoutesRepository;
             _trafficEventsRepository = trafficEventsRepository;
             _geoService = geoService;
-            _config = config;
             _localizer = localizer;
             _pushNotificationService = pushNotificationService;
             _usersService = usersService;
+            _dopplerService = dopplerService;
         }
 
         public IEnumerable<RouteEventDto> GetRouteEvents(int routeId)
@@ -91,8 +89,8 @@ namespace TrafficEventsInformer.Services
         {
             using (var httpClient = new HttpClient())
             {
-                CommonTI commonTICredentials = _config.GetSection("CommonTI").Get<CommonTI>();
-                var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{commonTICredentials.Username}:{commonTICredentials.Password}"));
+                DopplerSecrets dopplerSecrets = await _dopplerService.GetDopplerSecretsAsync();
+                var authHeaderValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{dopplerSecrets.CommonTIUsername}:{dopplerSecrets.CommonTIPassword}"));
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeaderValue);
                 httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip");
                 var apiUrl = "https://mobilitydata.rsd.cz/Resources/Dynamic/CommonTIDatex/";
