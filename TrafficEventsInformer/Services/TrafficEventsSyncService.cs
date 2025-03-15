@@ -20,10 +20,10 @@ namespace TrafficEventsInformer.Services
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     ITrafficEventsService _trafficEventsService = scope.ServiceProvider.GetRequiredService<ITrafficEventsService>();
-                    await _trafficEventsService.SyncRouteEventsAsync();
+                    await _trafficEventsService.InvalidateExpiredRouteEventsAsync();
                 }
 
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
             }
         }
     }

@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using System.IO.Compression;
-using System.Text;
-using System.Xml.Serialization;
 using TrafficEventsInformer.Attributes;
 using TrafficEventsInformer.Services;
 
@@ -47,26 +44,19 @@ namespace TrafficEventsInformer.Controllers
             return Ok(_trafficEventsService.GetRouteEventDetail(routeId, eventId));
         }
 
-        [HttpPost]
-        [Route("api/users/{userId}/trafficRoutes/events/sync")]
-        public async Task<IActionResult> SyncAllRouteEvents(string userId)
-        {
-            await _trafficEventsService.SyncRouteEventsAsync(userId);
-            return Ok();
-        }
-
-        //[HttpPost]
-        //[Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/sync")]
-        //public async Task<IActionResult> SyncRouteEvents(string userId, int routeId)
-        //{
-        //    return Ok(await _trafficEventsService.SyncRouteEventsAsync(routeId, userId));
-        //}
-
         [HttpPut]
         [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
         public IActionResult RenameRouteEvent(int routeId, string eventId, [FromBody] string name)
         {
             _trafficEventsService.RenameRouteEvent(routeId, eventId, name);
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/sync")]
+        public async Task<IActionResult> SyncRouteEvents(string userId, int routeId)
+        {
+            await _trafficEventsService.SyncRouteEventsAsync(userId, routeId);
             return Ok();
         }
 
@@ -81,42 +71,19 @@ namespace TrafficEventsInformer.Controllers
                 Log.Logger.Information("SyncEvents");
 
                 // Ensure the request is Gzipped
-                //if (!Request.Headers.ContentEncoding.ToString().Contains("gzip"))
-                //{
-                //    return BadRequest("Request is not Gzipped.");
-                //}
-
-                // Decompress the request body
-                using (var decompressedStream = new GZipStream(Request.Body, CompressionMode.Decompress))
-                using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
+                if (!Request.Headers.ContentEncoding.ToString().Contains("gzip"))
                 {
-                    string xmlContent = await reader.ReadToEndAsync();
-                    if (string.IsNullOrWhiteSpace(xmlContent))
-                    {
-                        return BadRequest("Empty request body.");
-                    }
-
-                    // Deserialize XML into your D2LogicalModel object
-                    var serializer = new XmlSerializer(typeof(D2LogicalModel));
-                    using (var stringReader = new StringReader(xmlContent))
-                    {
-                        var model = (D2LogicalModel)serializer.Deserialize(stringReader);
-
-                        var situations = ((SituationPublication)model.payloadPublication).situation
-                            .Select(situation => situation.situationRecord[0])
-                            //.Where(record => record.validity.validityTimeSpecification.overallEndTime > DateTime.Now)
-                            .ToList();
-
-                        Log.Logger.Information($"situations count: {situations.Count}");
-
-                        return Ok();
-                    }
+                    return BadRequest("Request is not Gzipped.");
                 }
+
+                await _trafficEventsService.SyncEvents(Request.Body);
+
+                return Ok();
             }
             catch (Exception ex)
             {
-                Log.Logger.Error("Error processing Gzipped XML", ex);
-                return StatusCode(500, new { message = "Error processing Gzipped XML", error = ex.Message });
+                Log.Logger.Error("Error occured during sync of events", ex);
+                return StatusCode(500, new { message = "Error occured during sync of events" });
             }
         }
     }

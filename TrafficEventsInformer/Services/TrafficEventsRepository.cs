@@ -76,32 +76,6 @@ namespace TrafficEventsInformer.Services
                 }).ToList()
             }).ToList();
         }
-
-        //public IEnumerable<ExpiredRouteEventDto> InvalidateExpiredRouteEvents(int routeId)
-        //{
-        //    var expiredEvents = _dbContext.RouteEvents.Where(x => !x.Expired &&
-        //        DateTime.Now > x.EndDate &&
-        //        routeId == x.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId).TrafficRouteId);
-
-        //    foreach (var expiredEvent in expiredEvents)
-        //    {
-        //        expiredEvent.Expired = true;
-        //    }
-
-        //    string userId = _dbContext.TrafficRoutes.Single(x => x.Id == routeId).UserId;
-
-        //    _dbContext.SaveChanges();
-
-        //    return expiredEvents.Select(x => new ExpiredRouteEventDto()
-        //    {
-        //        RouteEventId = x.Id,
-        //        RouteNames = x.TrafficRouteRouteEvents.Select(y => y.Name).ToArray(),
-        //        StartDate = x.StartDate,
-        //        EndDate = x.EndDate,
-        //        UserId = userId
-        //    });
-        //}
-
         public void RenameRouteEvent(int routeId, string eventId, string name)
         {
             TrafficRouteRouteEvent routeEvent = _dbContext.TrafficRouteRouteEvents.Single(x => x.TrafficRouteId == routeId
@@ -123,6 +97,22 @@ namespace TrafficEventsInformer.Services
         public void AssignRouteEventToUser(TrafficRouteRouteEvent trafficRouteRouteEvent)
         {
             _dbContext.TrafficRouteRouteEvents.Add(trafficRouteRouteEvent);
+            _dbContext.SaveChanges();
+        }
+
+        public void UpdateRouteEvent(RouteEvent routeEvent)
+        {
+            RouteEvent existingRouteEvent = _dbContext.RouteEvents.Single(x => x.Id == routeEvent.Id);
+
+            existingRouteEvent.Type = routeEvent.Type;
+            existingRouteEvent.Description = routeEvent.Description;
+            existingRouteEvent.StartDate = routeEvent.StartDate;
+            existingRouteEvent.EndDate = routeEvent.EndDate;
+            existingRouteEvent.StartPointX = routeEvent.StartPointX;
+            existingRouteEvent.StartPointY = routeEvent.StartPointY;
+            existingRouteEvent.EndPointX = routeEvent.EndPointX;
+            existingRouteEvent.EndPointY = routeEvent.EndPointY;
+
             _dbContext.SaveChanges();
         }
     }

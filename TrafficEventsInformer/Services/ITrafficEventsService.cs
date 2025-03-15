@@ -6,8 +6,9 @@ namespace TrafficEventsInformer.Services
     {
         IEnumerable<RouteEventDto> GetRouteEvents(int routeId);
         GetRouteEventDetailResponse GetRouteEventDetail(int routeId, string eventId);
-        Task SyncRouteEventsAsync();
-        Task SyncRouteEventsAsync(string userId);
         void RenameRouteEvent(int routeId, string eventId, string name);
+        Task InvalidateExpiredRouteEventsAsync();
+        Task SyncRouteEventsAsync(string userId, int routeId);
+        Task SyncEvents(Stream trafficEvents);
     }
 }

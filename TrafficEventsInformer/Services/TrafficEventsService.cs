@@ -62,31 +62,23 @@ namespace TrafficEventsInformer.Services
             return routeEventDetail;
         }
 
-        /// <summary>
-        /// Used for automatic periodical sync
-        /// </summary>
-        /// <returns></returns>
-        public async Task SyncRouteEventsAsync()
+        public void RenameRouteEvent(int routeId, string eventId, string name)
         {
-            List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
-
-            foreach (User user in _usersService.GetUsers())
-            {
-                await AddRouteEvents(user.Id, activeTrafficEvents);
-            }
-
-            InvalidateExpiredRouteEvents();
+            _trafficEventsRepository.RenameRouteEvent(routeId, eventId, name);
         }
 
-        public async Task SyncRouteEventsAsync(string userId)
+        public async Task SyncRouteEventsAsync(string userId, int routeId)
         {
             List<SituationRecord> activeTrafficEvents = await GetRsdTrafficEvents();
-            await AddRouteEvents(userId, activeTrafficEvents);
-            InvalidateExpiredRouteEvents();
+            RouteCoordinates routeCoordinates = GetRouteCoordinates(routeId);
+            await ProcessRouteEvent(activeTrafficEvents, routeCoordinates, userId);
+            await InvalidateExpiredRouteEventsAsync();
         }
 
         private async Task<List<SituationRecord>> GetRsdTrafficEvents()
         {
+            var situations = new List<SituationRecord>();
+
             using (var httpClient = new HttpClient())
             {
                 DopplerSecrets dopplerSecrets = await _dopplerService.GetDopplerSecretsAsync();
@@ -96,51 +88,90 @@ namespace TrafficEventsInformer.Services
                 var apiUrl = "https://mobilitydata.rsd.cz/Resources/Dynamic/CommonTIDatex/";
 
                 HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
-                var situations = new List<SituationRecord>();
 
                 if (response.IsSuccessStatusCode)
                 {
-                    string content = "";
-
-                    using (var responseStream = await response.Content.ReadAsStreamAsync())
-                    {
-                        if (response.Content.Headers.ContentEncoding.Contains("gzip"))
-                        {
-                            using (var decompressedStream = new GZipStream(responseStream, CompressionMode.Decompress))
-                            using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
-                            {
-                                content = await reader.ReadToEndAsync();
-                            }
-                        }
-                    }
-
-                    // RSD data temporary fix (The specified type is abstract: name='Roadworks')
-                    content = content.Replace("xsi:type=\"Roadworks\"", "xsi:type=\"ConstructionWorks\"");
-
-                    var serializer = new XmlSerializer(typeof(D2LogicalModel));
-                    using (StringReader stringReader = new StringReader(content))
-                    {
-                        var filteredSituations = (D2LogicalModel)serializer.Deserialize(stringReader);
-                        situations = ((SituationPublication)filteredSituations.payloadPublication).situation
-                            .Select(situation => situation.situationRecord[0])
-                            .Where(record => record.validity.validityTimeSpecification.overallEndTime > DateTime.Now)
-                            .ToList();
-                    }
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    situations = await FilterActiveRsdEvents(stream);
                 }
-                return situations;
             }
+
+            return situations;
         }
 
-        private async Task AddRouteEvents(string userId, List<SituationRecord> rsdTrafficEvents)
+        public RouteCoordinates GetRouteCoordinates(int routeId)
         {
-            List<RouteCoordinates> routeCoordinates = GetRouteCoordinates(userId).ToList();
-            foreach (var routeWithCoordinates in routeCoordinates)
+            TrafficRoute usersRoute = _trafficRoutesRepository.GetRoute(routeId);
+            XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
+            using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
             {
-                await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
+                Gpx route = (Gpx)serializer.Deserialize(stringReader);
+                return new RouteCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt);
             }
         }
 
-        private IEnumerable<RouteCoordinates> GetRouteCoordinates(string userId)
+        public async Task InvalidateExpiredRouteEventsAsync()
+        {
+            List<ExpiredEventDto> expiredEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents().ToList();
+
+            foreach (var expiredEvent in expiredEvents)
+            {
+                foreach (var route in expiredEvent.Routes)
+                {
+                    await _pushNotificationService.SendEventEndNotificationAsync(expiredEvent.EndDate, route.RouteName, route.RouteId, expiredEvent.EventId, route.UserId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates traffic events with data from RSP API, which are received in real time
+        /// </summary>
+        /// <param name="trafficEvents">Traffic events from RSP API</param>
+        /// <returns></returns>
+        public async Task SyncEvents(Stream trafficEvents)
+        {
+            List<SituationRecord> activeRsdEvents = await FilterActiveRsdEvents(trafficEvents);
+
+            foreach (var rsdEvent in activeRsdEvents)
+            {
+                foreach (User user in _usersService.GetUsers())
+                {
+                    await ProcessActiveEvents(user.Id, activeRsdEvents);
+                }
+            }
+        }
+
+        private async Task<List<SituationRecord>> FilterActiveRsdEvents(Stream trafficEvents)
+        {
+            Log.Logger.Information("SyncEvents");
+
+            using (var decompressedStream = new GZipStream(trafficEvents, CompressionMode.Decompress))
+            using (var reader = new StreamReader(decompressedStream, Encoding.UTF8))
+            {
+                string xmlContent = await reader.ReadToEndAsync();
+
+                // RSD data temporary fix (The specified type is abstract: name='Roadworks')
+                xmlContent = xmlContent.Replace("xsi:type=\"Roadworks\"", "xsi:type=\"ConstructionWorks\"");
+
+                // Deserialize XML into your D2LogicalModel object
+                var serializer = new XmlSerializer(typeof(D2LogicalModel));
+                using (var stringReader = new StringReader(xmlContent))
+                {
+                    var model = (D2LogicalModel)serializer.Deserialize(stringReader);
+
+                    var situations = ((SituationPublication)model.payloadPublication).situation
+                        .Select(situation => situation.situationRecord[0])
+                        .Where(record => record.validity.validityTimeSpecification.overallEndTime > DateTime.Now)
+                        .ToList();
+
+                    Log.Logger.Information($"situations count: {situations.Count}");
+
+                    return situations;
+                }
+            }
+        }
+
+        private IEnumerable<RouteCoordinates> GetRoutesCoordinates(string userId)
         {
             var usersRouteCoordinates = new List<RouteCoordinates>();
             List<TrafficRoute> usersRoutes = _trafficRoutesRepository.GetRoutes(userId).ToList();
@@ -156,74 +187,43 @@ namespace TrafficEventsInformer.Services
             return usersRouteCoordinates;
         }
 
-        private void InvalidateExpiredRouteEvents()
+        private async Task ProcessActiveEvents(string userId, List<SituationRecord> rsdTrafficEvents)
         {
-            List<ExpiredEventDto> expiredEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents().ToList();
-
-            foreach (var expiredEvent in expiredEvents)
+            List<RouteCoordinates> routeCoordinates = GetRoutesCoordinates(userId).ToList();
+            foreach (var routeWithCoordinates in routeCoordinates)
             {
-                foreach (var route in expiredEvent.Routes)
-                {
-                    _pushNotificationService.SendEventEndNotificationAsync(expiredEvent.EndDate, route.RouteName, route.RouteId, expiredEvent.EventId, route.UserId);
-                }
+                await ProcessRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
             }
         }
 
-        private async Task AddNewRouteEvents(int routeId, string userId, List<SituationRecord> rsdTrafficEvents)
-        {
-            RouteCoordinates routeWithCoordinates = GetRouteCoordinates(routeId);
-            await AddRouteEvent(rsdTrafficEvents, routeWithCoordinates, userId);
-        }
-
-        //private void InvalidateExpiredRouteEvents(int routeId)
-        //{
-        //    List<ExpiredRouteEventDto> expiredRouteEvents = _trafficEventsRepository.InvalidateExpiredRouteEvents(routeId).ToList();
-        //    foreach (var expiredRouteEvent in expiredRouteEvents)
-        //    {
-        //        // Send notif for each route on which event expired
-        //        _pushNotificationService.SendEventEndNotificationAsync(expiredRouteEvent.EndDate, expiredRouteEvent.RouteNames, routeId, expiredRouteEvent.RouteEventId, expiredRouteEvent.UserId);
-        //    }
-        //}
-
-        public RouteCoordinates GetRouteCoordinates(int routeId)
-        {
-            TrafficRoute usersRoute = _trafficRoutesRepository.GetRoute(routeId);
-            XmlSerializer serializer = new XmlSerializer(typeof(Gpx));
-            using (StringReader stringReader = new StringReader(usersRoute.Coordinates))
-            {
-                Gpx route = (Gpx)serializer.Deserialize(stringReader);
-                return new RouteCoordinates(usersRoute.Id, route.Trk.Trkseg.Trkpt);
-            }
-        }
-
-        private async Task AddRouteEvent(List<SituationRecord> activeEvents, RouteCoordinates route, string userId)
+        private async Task ProcessRouteEvent(List<SituationRecord> activeEvents, RouteCoordinates route, string userId)
         {
             List<SituationRecord> routeEvents = GetEventsOnRoute(route.Coordinates, activeEvents).ToList();
+
             foreach (var routeEvent in routeEvents)
             {
                 TrafficRoute trafficRoute = _trafficRoutesRepository.GetRoute(route.RouteId);
-                RouteEvent routeEventEntity;
+                var routeEventEntity = new RouteEvent()
+                {
+                    Id = routeEvent.id,
+                    Type = (int)Enum.Parse<EventType>(routeEvent.GetType().Name),
+                    Description = routeEvent.generalPublicComment[0].comment.values[0].Value,
+                    StartDate = routeEvent.validity.validityTimeSpecification.overallStartTime,
+                    EndDate = routeEvent.validity.validityTimeSpecification.overallEndTime,
+                    StartPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskX,
+                    StartPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskY,
+                    EndPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskX,
+                    EndPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskY,
+                    Expired = false
+                };
 
                 if (_trafficEventsRepository.RouteEventExists(routeEvent.id))
                 {
-                    routeEventEntity = _trafficEventsRepository.GetRouteEvent(routeEvent.id);
+                    _trafficEventsRepository.UpdateRouteEvent(routeEventEntity);
+                    //routeEventEntity = _trafficEventsRepository.GetRouteEvent(routeEvent.id);
                 }
                 else
                 {
-                    routeEventEntity = new RouteEvent()
-                    {
-                        Id = routeEvent.id,
-                        Type = (int)Enum.Parse<EventType>(routeEvent.GetType().Name),
-                        Description = routeEvent.generalPublicComment[0].comment.values[0].Value,
-                        StartDate = routeEvent.validity.validityTimeSpecification.overallStartTime,
-                        EndDate = routeEvent.validity.validityTimeSpecification.overallEndTime,
-                        StartPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskX,
-                        StartPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.startPoint.sjtskPointCoordinates.sjtskY,
-                        EndPointX = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskX,
-                        EndPointY = ((Linear)routeEvent.groupOfLocations).globalNetworkLinear.endPoint.sjtskPointCoordinates.sjtskY,
-                        Expired = false
-                    };
-
                     _trafficEventsRepository.AddRouteEvent(routeEventEntity);
                 }
 
@@ -239,7 +239,6 @@ namespace TrafficEventsInformer.Services
 
                     _trafficEventsRepository.AssignRouteEventToUser(trafficRouteRouteEvent);
 
-                    Log.Logger.Information($"SendEventStartNotificationAsync - routeEventEntity.StartDate: {routeEventEntity.StartDate}, trafficRoute.Name: {trafficRoute.Name}, trafficRoute.Id: {trafficRoute.Id}, routeEventEntity.Id: {routeEventEntity.Id}, userId: {userId}");
                     _pushNotificationService.SendEventStartNotificationAsync(routeEventEntity.StartDate, trafficRoute.Name, trafficRoute.Id, routeEventEntity.Id, userId);
                 }
             }
@@ -263,11 +262,6 @@ namespace TrafficEventsInformer.Services
                 }
             }
             return result;
-        }
-
-        public void RenameRouteEvent(int routeId, string eventId, string name)
-        {
-            _trafficEventsRepository.RenameRouteEvent(routeId, eventId, name);
         }
     }
 }
