@@ -29,7 +29,7 @@ namespace TrafficEventsInformer.Ef
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).HasMaxLength(36);
-                entity.Property(e => e.Description).HasMaxLength(1000);
+                entity.Property(e => e.Description).HasMaxLength(10000);
             });
             modelBuilder.Entity<TrafficRouteRouteEvent>(entity =>
             {
