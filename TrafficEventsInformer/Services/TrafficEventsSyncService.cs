@@ -13,17 +13,24 @@ namespace TrafficEventsInformer.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                Log.Logger.Information("Automatic traffic events sync");
-
-                using (var scope = _scopeFactory.CreateScope())
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    ITrafficEventsService _trafficEventsService = scope.ServiceProvider.GetRequiredService<ITrafficEventsService>();
-                    await _trafficEventsService.InvalidateExpiredRouteEventsAsync();
-                }
+                    Log.Logger.Information("Automatic traffic events sync");
 
-                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        ITrafficEventsService _trafficEventsService = scope.ServiceProvider.GetRequiredService<ITrafficEventsService>();
+                        await _trafficEventsService.InvalidateExpiredRouteEventsAsync();
+                    }
+
+                    await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Logger.Error(ex, "Error during automatic traffic events sync");
             }
         }
     }
