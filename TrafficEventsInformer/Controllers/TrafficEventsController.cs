@@ -83,7 +83,9 @@ namespace TrafficEventsInformer.Controllers
             catch (Exception ex)
             {
                 Log.Logger.Error("Error occured during sync of events", ex);
-                return StatusCode(500, new { message = "Error occured during sync of events" });
+
+                // Return 200 OK to prevent being blocked by RSD
+                return Ok();
             }
         }
     }
