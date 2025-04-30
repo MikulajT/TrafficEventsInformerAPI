@@ -18,5 +18,8 @@ namespace TrafficEventsInformer.Models
 
         [JsonPropertyName("COMMON_TI_BASIC_AUTH_PASSWORD")]
         public string CommonTIBasicAuthPassword { get; set; }
+
+        [JsonPropertyName("GOOGLE_CLIENT_ID")]
+        public string GoogleClientId { get; set; }
     }
 }

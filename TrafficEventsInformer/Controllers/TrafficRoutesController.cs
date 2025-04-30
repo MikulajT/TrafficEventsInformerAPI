@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TrafficEventsInformer.Attributes;
 using TrafficEventsInformer.Models;
 using TrafficEventsInformer.Services;
 
 namespace TrafficEventsInformer.Controllers
 {
     [ApiController]
+    [Authorize]
+    [VerifyUserId]
     public class TrafficRoutesController : ControllerBase
     {
         private readonly ITrafficRoutesService _trafficRouteService;
@@ -22,7 +26,7 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpPost]
-        [Route("api/trafficRoutes")]
+        [Route("api/users/{userId}/trafficRoutes")]
         public async Task<IActionResult> AddRouteAsync([FromForm] AddRouteRequestDto requestData)
         {
             int routeId = _trafficRouteService.AddRoute(requestData);
@@ -30,7 +34,7 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpDelete]
-        [Route("api/trafficRoutes/{routeId:int}")]
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}")]
         public IActionResult DeleteRoute(int routeId)
         {
             _trafficRouteService.DeleteRoute(routeId);
@@ -38,7 +42,7 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpPut]
-        [Route("api/trafficRoutes/{routeId:int}")]
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}")]
         public IActionResult RenameRoute(int routeId, [FromBody] UpdateRouteRequest requestData)
         {
             requestData.RouteId = routeId;

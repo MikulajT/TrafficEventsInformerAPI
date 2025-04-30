@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.IO.Compression;
@@ -9,6 +10,7 @@ using TrafficEventsInformer.Services;
 namespace TrafficEventsInformer.Controllers
 {
     [ApiController]
+    [Authorize]
     public class TrafficEventsController : ControllerBase
     {
         private readonly ITrafficEventsService _trafficEventsService;
@@ -34,14 +36,16 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpGet]
-        [Route("/api/trafficRoutes/{routeId:int}/events")]
+        [Route("/api/users/{userId}/trafficRoutes/{routeId:int}/events")]
+        [VerifyUserId]
         public IActionResult GetRouteEvents(int routeId)
         {
             return Ok(_trafficEventsService.GetRouteEvents(routeId));
         }
 
         [HttpGet]
-        [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
+        [VerifyUserId]
         public IActionResult GetRouteEventDetail(int routeId, string eventId)
         {
             return Ok(_trafficEventsService.GetRouteEventDetail(routeId, eventId));
@@ -49,6 +53,7 @@ namespace TrafficEventsInformer.Controllers
 
         [HttpPost]
         [Route("api/users/{userId}/trafficRoutes/events/sync")]
+        [VerifyUserId]
         public async Task<IActionResult> SyncAllRouteEvents(string userId)
         {
             await _trafficEventsService.SyncRouteEventsAsync(userId);
@@ -63,7 +68,8 @@ namespace TrafficEventsInformer.Controllers
         //}
 
         [HttpPut]
-        [Route("api/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
+        [Route("api/users/{userId}/trafficRoutes/{routeId:int}/events/{eventId:Guid}")]
+        [VerifyUserId]
         public IActionResult RenameRouteEvent(int routeId, string eventId, [FromBody] string name)
         {
             _trafficEventsService.RenameRouteEvent(routeId, eventId, name);

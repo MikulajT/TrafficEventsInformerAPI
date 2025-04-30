@@ -1,9 +1,11 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Globalization;
 using System.Reflection;
@@ -17,9 +19,59 @@ namespace TrafficEventsInformer
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddTransient<IGeoService, GeoService>();
+            builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
+            builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
+            builder.Services.AddTransient<ITrafficEventsRepository, TrafficEventsRepository>();
+            builder.Services.AddTransient<ITrafficEventsService, TrafficEventsService>();
+            builder.Services.AddTransient<IUsersRepository, UsersRepository>();
+            builder.Services.AddTransient<IUsersService, UsersService>();
+            builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
+            builder.Services.AddSingleton<IDopplerService, DopplerService>();
+
+            builder.Services.AddHostedService<TrafficEventsSyncService>();
+
             string env = builder.Environment.EnvironmentName;
 
             builder.Configuration.AddJsonFile("appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+            // Get doppler secrets
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            var dopplerService = serviceProvider.GetRequiredService<IDopplerService>();
+            var dopplerSecrets = dopplerService.GetDopplerSecretsAsync().Result;
+
+            // Authentication
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.Authority = "https://accounts.google.com"; // for Google
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = "https://accounts.google.com",
+                    ValidateAudience = true,
+                    // Replace with your own Google client ID
+                    // TODO: Put Google client ID to doppler
+                    ValidAudience = dopplerSecrets.GoogleClientId,
+                    ValidateLifetime = true,
+                };
+
+                // Add logging for auth failures
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine($"[Authentication Failed] {context.Exception.Message}");
+                        if (context.Exception.InnerException != null)
+                        {
+                            Console.WriteLine($"[Inner Exception] {context.Exception.InnerException.Message}");
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+            builder.Services.AddAuthorization();
 
             // Localization
             builder.Services.AddLocalization(options => options.ResourcesPath = "Resources/Services");
@@ -48,18 +100,6 @@ namespace TrafficEventsInformer
                 Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "trafficeventsinformer-firebase-adminsdk-610ik-10035f39e0.json")),
             });
 
-            builder.Services.AddTransient<IGeoService, GeoService>();
-            builder.Services.AddTransient<ITrafficRoutesRepository, TrafficRoutesRepository>();
-            builder.Services.AddTransient<ITrafficRoutesService, TrafficRoutesService>();
-            builder.Services.AddTransient<ITrafficEventsRepository, TrafficEventsRepository>();
-            builder.Services.AddTransient<ITrafficEventsService, TrafficEventsService>();
-            builder.Services.AddTransient<IUsersRepository, UsersRepository>();
-            builder.Services.AddTransient<IUsersService, UsersService>();
-            builder.Services.AddTransient<IPushNotificationService, PushNotificationService>();
-            builder.Services.AddSingleton<IDopplerService, DopplerService>();
-
-            builder.Services.AddHostedService<TrafficEventsSyncService>();
-
             // Add services to the container.
             // Add controllers and support for XML input/output
             builder.Services.AddControllers(options =>
@@ -73,10 +113,7 @@ namespace TrafficEventsInformer
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
-                var serviceProvider = builder.Services.BuildServiceProvider();
-                var dopplerService = serviceProvider.GetRequiredService<IDopplerService>();
-
-                options.UseNpgsql(dopplerService.GetDopplerSecretsAsync().Result.DbConnectionString);
+                options.UseNpgsql(dopplerSecrets.DbConnectionString);
                 //options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString"));
             });
 
@@ -105,6 +142,7 @@ namespace TrafficEventsInformer
             app.UseSwagger();
             app.UseSwaggerUI();
             //app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 
