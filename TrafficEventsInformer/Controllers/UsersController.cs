@@ -18,10 +18,10 @@ namespace TrafficEventsInformer.Controllers
         }
 
         [HttpPost]
-        [Route("/api/users")]
-        public IActionResult AddUser([FromBody] AddUserRequestDto requestBody)
+        [Route("/api/users/{userId}")]
+        public IActionResult AddUser([FromRoute] string userId, [FromBody] AddUserRequestDto requestBody)
         {
-            _usersService.AddUser(requestBody);
+            _usersService.AddUser(userId, requestBody.Email);
             return Ok();
         }
 

@@ -21,5 +21,11 @@ namespace TrafficEventsInformer.Models
 
         [JsonPropertyName("GOOGLE_CLIENT_ID")]
         public string GoogleClientId { get; set; }
+
+        [JsonPropertyName("FACEBOOK_APP_ID")]
+        public string FacebookAppId { get; set; }
+
+        [JsonPropertyName("FACEBOOK_APP_SECRET")]
+        public string FacebookAppSecret { get; set; }
     }
 }

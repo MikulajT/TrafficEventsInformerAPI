@@ -35,6 +35,12 @@ namespace TrafficEventsInformer.Attributes
                 return;
             }
 
+            // Extract id in case of Facebook
+            if (authenticatedUserId.StartsWith("facebook"))
+            {
+                authenticatedUserId = authenticatedUserId.Split('_')[1];
+            }
+
             // Read userId from route parameters
             if (context.RouteData.Values.TryGetValue(_userIdRouteParameterName, out var routeUserIdObj))
             {

@@ -8,6 +8,6 @@ namespace TrafficEventsInformer.Services
         void AddFcmDeviceToken(string userId, string token);
         bool UserHasToken(string userId, string token);
         IEnumerable<User> GetUsers();
-        void AddUser(AddUserRequestDto requestDto);
+        void AddUser(string userId, string email);
     }
 }

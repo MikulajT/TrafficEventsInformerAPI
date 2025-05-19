@@ -1,6 +1,6 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
@@ -42,35 +42,36 @@ namespace TrafficEventsInformer
             var dopplerSecrets = dopplerService.GetDopplerSecretsAsync().Result;
 
             // Authentication
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            builder.Services.AddAuthentication(options =>
             {
-                options.Authority = "https://accounts.google.com"; // for Google
+                options.DefaultScheme = "DynamicScheme";
+            })
+            .AddPolicyScheme("DynamicScheme", "Dynamic Scheme", options =>
+            {
+                options.ForwardDefaultSelector = context =>
+                {
+                    var scheme = context.Items["auth_scheme"] as string;
+                    return scheme switch
+                    {
+                        "Facebook" => "Facebook",
+                        "Google" => "Google",
+                        _ => "Google" // Default fallback
+                    };
+                };
+            })
+            .AddJwtBearer("Google", options =>
+            {
+                options.Authority = "https://accounts.google.com";
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidIssuer = "https://accounts.google.com",
                     ValidateAudience = true,
-                    // Replace with your own Google client ID
-                    // TODO: Put Google client ID to doppler
                     ValidAudience = dopplerSecrets.GoogleClientId,
                     ValidateLifetime = true,
                 };
-
-                // Add logging for auth failures
-                options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context =>
-                    {
-                        Console.WriteLine($"[Authentication Failed] {context.Exception.Message}");
-                        if (context.Exception.InnerException != null)
-                        {
-                            Console.WriteLine($"[Inner Exception] {context.Exception.InnerException.Message}");
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+            })
+            .AddScheme<AuthenticationSchemeOptions, FacebookTokenHandler>("Facebook", _ => { });
             builder.Services.AddAuthorization();
 
             // Localization
@@ -142,6 +143,7 @@ namespace TrafficEventsInformer
             app.UseSwagger();
             app.UseSwaggerUI();
             //app.UseHttpsRedirection();
+            app.UseMiddleware<AuthSchemeSelectorMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();

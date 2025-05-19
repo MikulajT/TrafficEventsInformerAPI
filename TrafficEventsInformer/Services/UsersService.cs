@@ -1,5 +1,4 @@
 ﻿using TrafficEventsInformer.Ef.Models;
-using TrafficEventsInformer.Models;
 
 namespace TrafficEventsInformer.Services
 {
@@ -30,11 +29,11 @@ namespace TrafficEventsInformer.Services
             return _usersRepository.GetUsers();
         }
 
-        public void AddUser(AddUserRequestDto requestDto)
+        public void AddUser(string userId, string email)
         {
-            if (!_usersRepository.UserExists(requestDto.Id))
+            if (!_usersRepository.UserExists(userId))
             {
-                _usersRepository.AddUser(requestDto.Id, requestDto.Email);
+                _usersRepository.AddUser(userId, email);
             }
         }
     }
